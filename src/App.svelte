@@ -89,7 +89,7 @@
 <nav class="navbar is-primary" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
-      <img src="/favicon.png" alt="OBS-web" class="rotate" />
+      <img src="favicon.png" alt="OBS-web" class="rotate" />
       &nbsp; OBS-web
     </a>
 
