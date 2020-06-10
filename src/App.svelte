@@ -146,6 +146,23 @@
         <strong>OBS-web</strong>
         - the easiest way to control OBS remotely!
       </h1>
+
+      {#if document.location.protocol === 'https:'}
+      <div class="notification is-danger">
+        You are checking this page on a secure HTTPS connection. That's great, but it means you can
+        <strong>only</strong>
+        connect to WSS (secure websocket) hosts, for example OBS exposed with
+        <a href="https://ngrok.com/">ngrok</a>
+        or
+        <a href="https://pagekite.net/">pagekite</a>
+        . If you want to connect to a local OBS instance,
+        <strong>
+          <a href="{document.location.href.replace('https:', 'http')}">please click here to load the non-secure version of this page</a>
+        </strong>
+        .
+      </div>
+      {/if}
+
       <p>To get started, enter your OBS host below and click "connect".</p>
 
       <div class="field is-grouped">
