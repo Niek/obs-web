@@ -4,6 +4,7 @@ import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import postcss from 'rollup-plugin-postcss';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 
 
 const production = !process.env.ROLLUP_WATCH;
@@ -34,6 +35,8 @@ export default {
 			dedupe: ['svelte']
 		}),
 		commonjs(),
+		nodePolyfills(),
+		
 		!production && serve(),
 		!production && livereload('public'),
 		production && terser()
