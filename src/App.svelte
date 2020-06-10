@@ -26,11 +26,15 @@
     heartbeat,
     currentScene = false;
   let scenes = [];
+  let host,
+    password,
+    errorMessage = '';
   $: sceneChunks = Array(Math.ceil(scenes.length / 4))
     .fill()
     .map((_, index) => index * 4)
     .map(begin => scenes.slice(begin, begin + 4));
 
+  // OBS functions
   async function setScene(e) {
     await obs.send('SetCurrentScene', { 'scene-name': e.currentTarget.innerText });
   }
@@ -43,16 +47,87 @@
     await obs.send('StopStreaming');
   }
 
+  async function updateScenes() {
+    let data = await obs.send('GetSceneList');
+    currentScene = data.currentScene;
+    scenes = data.scenes;
+    console.log('Scenes updated');
+  }
+
   async function getScreenshot() {
     if (connected) {
       let data = await obs.send('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
       if (data.img) {
-        document.querySelector('#preview').classList.remove('is-hidden');
         document.querySelector('#preview').src = data.img;
       }
     }
     setTimeout(getScreenshot, 1000);
   }
+
+  async function connect() {
+    host = document.querySelector('#host').value || 'localhost:4444';
+    console.log('Connecting to:', host, 'using password:', password);
+    await disconnect();
+    connected = false;
+    try {
+      await obs.connect({ address: host, password, secure: location.protocol === 'https:' });
+    } catch (e) {
+      console.log(e);
+      errorMessage = e.description;
+    }
+  }
+
+  async function disconnect() {
+    await obs.disconnect();
+    connected = false;
+    errorMessage = 'Connection closed';
+  }
+
+  async function hostkey(event) {
+    if (event.key !== 'Enter') return;
+    await connect();
+    event.preventDefault();
+  }
+
+  // OBS events
+  obs.on('ConnectionClosed', () => {
+    connected = false;
+    console.log('Connection closed');
+  });
+
+  obs.on('AuthenticationSuccess', async () => {
+    console.log('Connected');
+    connected = true;
+    await obs.send('SetHeartbeat', { enable: true });
+    await updateScenes();
+    await getScreenshot();
+    document.querySelector('#preview').classList.remove('is-hidden');
+  });
+
+  obs.on('AuthenticationFailure', async () => {
+    password = prompt('Please enter your password:', password);
+    if (password === null) {
+      connected = false;
+      password = '';
+    } else {
+      await connect();
+    }
+  });
+
+  // Heartbeat
+  obs.on('Heartbeat', data => {
+    heartbeat = data;
+  });
+
+  // Scenes
+  obs.on('SwitchScenes', data => {
+    console.log(`New Active Scene: ${data.sceneName}`);
+    updateScenes();
+  });
+
+  obs.on('error', err => {
+    console.error('Socket error:', err);
+  });
 
   document.addEventListener('DOMContentLoaded', () => {
     // Hamburger menu
@@ -67,45 +142,6 @@
         });
       });
     }
-
-    // Connect
-    document.querySelector('#connect').addEventListener('click', async () => {
-      const host = document.querySelector('#host').value || 'localhost:4444';
-      console.log('Connecting to: ' + host);
-      await obs.disconnect();
-      connected = false;
-      await obs.connect({ address: host, secure: location.protocol === 'https:' });
-      console.log('Connected');
-      connected = true;
-      await obs.send('SetHeartbeat', { enable: true });
-      await updateScenes();
-      await getScreenshot();
-    });
-
-    // Heartbeat
-    obs.on('Heartbeat', data => {
-      heartbeat = data;
-    });
-
-    // Scenes
-    obs.on('SwitchScenes', data => {
-      console.log(`New Active Scene: ${data.sceneName}`);
-      updateScenes();
-    });
-
-    async function updateScenes() {
-      let data = await obs.send('GetSceneList');
-      currentScene = data.currentScene;
-      scenes = data.scenes;
-      console.log('Scenes updated');
-    }
-
-    // Handle enter key
-    document.querySelector('#host').addEventListener('keyup', event => {
-      if (event.key !== 'Enter') return;
-      document.querySelector('#connect').click();
-      event.preventDefault();
-    });
   });
 </script>
 
@@ -132,19 +168,21 @@
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
+          <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
-            <a class="button is-info is-light" id="info" disabled>
+            <a class="button is-info is-light" disabled>
               {#if heartbeat}
                 {Math.round(heartbeat.stats.fps)} fps, {Math.round(heartbeat.stats['cpu-usage'])}% CPU, {heartbeat.stats['output-skipped-frames']} skipped frames
               {:else}Connected{/if}
             </a>
             {#if heartbeat && heartbeat.streaming}
-              <a class="button is-danger" id="stream" on:click={stopStream}>Stop stream ({heartbeat.totalStreamTime} secs)</a>
+              <a class="button is-danger" on:click={stopStream}>Stop stream ({heartbeat.totalStreamTime} secs)</a>
             {:else}
-              <a class="button is-danger" id="stream" on:click={startStream}>Start stream</a>
+              <a class="button is-danger" on:click={startStream}>Start stream</a>
             {/if}
+            <a class="button is-danger is-light" on:click={disconnect}>Disconnect</a>
           {:else}
-            <a class="button is-info is-light" id="info" disabled>Not connected</a>
+            <a class="button is-danger" disabled>{errorMessage || 'Not connected'}</a>
           {/if}
         </div>
       </div>
@@ -201,10 +239,10 @@
 
       <div class="field is-grouped">
         <p class="control is-expanded">
-          <input id="host" class="input" type="text" placeholder="localhost:4444" />
+          <input id="host" on:keyup={hostkey} class="input" type="text" placeholder="localhost:4444" />
         </p>
         <p class="control">
-          <button id="connect" class="button is-success">Connect</button>
+          <button on:click={connect} class="button is-success">Connect</button>
         </p>
       </div>
     {/if}
