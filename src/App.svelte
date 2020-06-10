@@ -28,6 +28,17 @@
     await obs.send('StopStreaming');
   }
 
+  async function getScreenshot() {
+    if (connected) {
+      let data = await obs.send('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
+      if (data.img) {
+        document.querySelector('#preview').classList.remove('is-hidden');
+        document.querySelector('#preview').src = data.img;
+      }
+    }
+    setTimeout(getScreenshot, 1000);
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Hamburger menu
     const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
@@ -52,7 +63,8 @@
       console.log('Connected');
       connected = true;
       await obs.send('SetHeartbeat', { enable: true });
-      updateScenes();
+      await updateScenes();
+      await getScreenshot();
     });
 
     // Heartbeat
@@ -140,6 +152,11 @@
           {/each}
         </div>
       {/each}
+      <div class="columns is-centered">
+        <div class="column is-half has-text-centered">
+          <img id="preview" alt="Preview" class="is-hidden" />
+        </div>
+      </div>
     {:else}
       <h1 class="subtitle">
         Welcome to
@@ -148,19 +165,19 @@
       </h1>
 
       {#if document.location.protocol === 'https:'}
-      <div class="notification is-danger">
-        You are checking this page on a secure HTTPS connection. That's great, but it means you can
-        <strong>only</strong>
-        connect to WSS (secure websocket) hosts, for example OBS exposed with
-        <a href="https://ngrok.com/">ngrok</a>
-        or
-        <a href="https://pagekite.net/">pagekite</a>
-        . If you want to connect to a local OBS instance,
-        <strong>
-          <a href="{document.location.href.replace('https:', 'http')}">please click here to load the non-secure version of this page</a>
-        </strong>
-        .
-      </div>
+        <div class="notification is-danger">
+          You are checking this page on a secure HTTPS connection. That's great, but it means you can
+          <strong>only</strong>
+          connect to WSS (secure websocket) hosts, for example OBS exposed with
+          <a href="https://ngrok.com/">ngrok</a>
+          or
+          <a href="https://pagekite.net/">pagekite</a>
+          . If you want to connect to a local OBS instance,
+          <strong>
+            <a href={document.location.href.replace('https:', 'http')}>please click here to load the non-secure version of this page</a>
+          </strong>
+          .
+        </div>
       {/if}
 
       <p>To get started, enter your OBS host below and click "connect".</p>
