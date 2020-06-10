@@ -174,7 +174,7 @@
           <a href="https://pagekite.net/">pagekite</a>
           . If you want to connect to a local OBS instance,
           <strong>
-            <a href={document.location.href.replace('https:', 'http')}>please click here to load the non-secure version of this page</a>
+            <a href={document.location.href.replace('https:', 'http:')}>please click here to load the non-secure version of this page</a>
           </strong>
           .
         </div>
