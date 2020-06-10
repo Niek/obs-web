@@ -1,0 +1,18 @@
+@charset "utf-8";
+
+$footer-padding: 3rem 1.5rem;
+
+@import "~bulma/bulma.sass";
+
+@keyframes rotating {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.rotate {
+  animation: rotating 10s linear infinite;
+}
