@@ -6,6 +6,21 @@
   import OBSWebSocket from 'obs-websocket-js';
   const obs = new OBSWebSocket();
 
+  // Request screen wakelock
+  let wakeLock = null;
+  (async () => {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+
+      // Re-request when coming back
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          wakeLock = navigator.wakeLock.request('screen');
+        }
+      });
+    }
+  })();
+
   // State
   let connected,
     heartbeat,
