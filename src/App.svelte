@@ -50,7 +50,7 @@
   async function updateScenes() {
     let data = await obs.send('GetSceneList');
     currentScene = data.currentScene;
-    scenes = data.scenes;
+    scenes = data.scenes.filter(i => { return i.name.indexOf('(hidden)') === -1 }); // Skip hidden scenes
     console.log('Scenes updated');
   }
 
