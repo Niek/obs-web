@@ -36,7 +36,7 @@
 
   // OBS functions
   async function setScene(e) {
-    await obs.send('SetCurrentScene', { 'scene-name': e.currentTarget.innerText });
+    await obs.send('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
   }
 
   async function startStream() {
