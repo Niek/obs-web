@@ -1,0 +1,24 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "verstaerker-583",
+      "name": "verstaerker-583",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/40574338?v=4",
+      "profile": "https://github.com/verstaerker-583",
+      "contributions": [
+        "code"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "obs-web",
+  "projectOwner": "Niek",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
