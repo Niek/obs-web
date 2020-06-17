@@ -2,10 +2,10 @@ import svelte from 'rollup-plugin-svelte';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import livereload from 'rollup-plugin-livereload';
-import { terser } from 'rollup-plugin-terser';
+import terser from 'rollup-plugin-terser';
 import postcss from 'rollup-plugin-postcss';
+import purgecss from '@fullhuman/postcss-purgecss';
 import nodePolyfills from 'rollup-plugin-node-polyfills';
-
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -28,7 +28,7 @@ export default {
 			}*/
 		}),
 
-		postcss({plugins: [], minimize: true}),
+		postcss({plugins: (production ? [purgecss({content: ["./src/**/*.svelte", "./public/**/*.html"]})] : []), minimize: production}),
 
 		resolve({
 			browser: true,
