@@ -1,5 +1,6 @@
 <script>
-  // Import SCSS
+  // Imports
+  import { onMount } from 'svelte';
   import './style.scss';
   import { mdiFullscreen, mdiFullscreenExit } from '@mdi/js';
   import Icon from 'mdi-svelte';
@@ -8,9 +9,8 @@
   import OBSWebSocket from 'obs-websocket-js';
   const obs = new OBSWebSocket();
 
-  // Request screen wakelock
-  let wakeLock = null;
-  (async () => {
+  onMount(async () => {
+    // Request screen wakelock
     if ('wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
 
@@ -21,13 +21,27 @@
         }
       });
     }
-  })();
+
+    // Hamburger menu
+    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+    if ($navbarBurgers.length > 0) {
+      $navbarBurgers.forEach(el => {
+        el.addEventListener('click', () => {
+          const target = el.dataset.target;
+          const $target = document.getElementById(target);
+          el.classList.toggle('is-active');
+          $target.classList.toggle('is-active');
+        });
+      });
+    }
+  });
 
   // State
   let connected,
     heartbeat,
     currentScene,
-    isFullScreen = false;
+    isFullScreen,
+    wakeLock = false;
   let scenes = [];
   let host,
     password,
@@ -141,21 +155,6 @@
 
   obs.on('error', err => {
     console.error('Socket error:', err);
-  });
-
-  document.addEventListener('DOMContentLoaded', () => {
-    // Hamburger menu
-    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-    if ($navbarBurgers.length > 0) {
-      $navbarBurgers.forEach(el => {
-        el.addEventListener('click', () => {
-          const target = el.dataset.target;
-          const $target = document.getElementById(target);
-          el.classList.toggle('is-active');
-          $target.classList.toggle('is-active');
-        });
-      });
-    }
   });
 </script>
 
