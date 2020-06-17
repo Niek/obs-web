@@ -34,6 +34,11 @@
         });
       });
     }
+
+    if (document.location.hash != '') { // Read host from hash
+      host = document.location.hash.slice(1);
+      await connect();
+    }
   });
 
   // State
@@ -93,7 +98,7 @@
   }
 
   async function connect() {
-    host = document.querySelector('#host').value || 'localhost:4444';
+    host = host || 'localhost:4444';
     console.log('Connecting to:', host, 'using password:', password);
     await disconnect();
     connected = false;
@@ -108,7 +113,7 @@
   async function disconnect() {
     await obs.disconnect();
     connected = false;
-    errorMessage = 'Connection closed';
+    errorMessage = 'Disconnected';
   }
 
   async function hostkey(event) {
@@ -120,12 +125,14 @@
   // OBS events
   obs.on('ConnectionClosed', () => {
     connected = false;
+    window.history.pushState('', document.title, window.location.pathname + window.location.search); // Remove the hash
     console.log('Connection closed');
   });
 
   obs.on('AuthenticationSuccess', async () => {
     console.log('Connected');
     connected = true;
+    document.location.hash = host; // For easy bookmarking
     await obs.send('SetHeartbeat', { enable: true });
     await updateScenes();
     await getScreenshot();
@@ -258,7 +265,7 @@
 
       <div class="field is-grouped">
         <p class="control is-expanded">
-          <input id="host" on:keyup={hostkey} class="input" type="text" placeholder="localhost:4444" />
+          <input id="host" on:keyup={hostkey} bind:value={host} class="input" type="text" placeholder="localhost:4444" />
         </p>
         <p class="control">
           <button on:click={connect} class="button is-success">Connect</button>

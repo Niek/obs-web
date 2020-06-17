@@ -13,6 +13,8 @@
 - Easily switch scenes and start/stop streaming
 - Hide scenes that have ``(hidden)`` in their name
 - Preview of output, updating continuously
+- Fullscreen button and wakelock support
+- Easy bookmarking/deeplink by specifying host in URL
 - Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket#connecting-over-a-tlssecure-connection-or-remotely)
 
 ---
