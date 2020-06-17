@@ -1,0 +1,12 @@
+{
+  "version": 3,
+  "file": "bundle.css",
+  "sources": [
+    "../../Index.svelte"
+  ],
+  "sourcesContent": [
+    "<script>\n  export let path;\n  export let size = 1;\n  export let color = null;\n  export let flip = null;\n  export let rotate = 0;\n  export let spin = false;\n\n \n  // SPIN properties\n  $: inverse = (typeof spin !== \"boolean\" && spin < 0) ? true : false;\n  $: spintime = Math.abs(spin === true ? 2 : spin);\n  $: spinfunc = inverse ? 'spin-inverse' : 'spin';\n\n  // size\n  if(Number(size)) size = Number(size);\n  \n  const getStyles = () => {\n      const transform = [];\n      const styles = [];\n\n      if (size !== null) {\n          const width = (typeof size === \"string\") ? size : `${size * 1.5}rem`;\n          styles.push(['width',width]);\n          styles.push(['height',width]);\n      }\n\n      styles.push( ['fill', (color !== null) ? color: 'currentColor'] );\n\n      if (flip === true || flip === 'h') {\n        transform.push(\"scaleX(-1)\");\n      }\n\n      if (flip === true || flip === 'v') {\n        transform.push(\"scaleY(-1)\");\n      }\n\n      if (rotate != 0) {\n        transform.push(`rotate(${rotate}deg)`);\n  \n      }\n\n      if(transform.length > 0) {\n        styles.push( ['transform', transform.join(' ')] );\n        styles.push( ['transform-origin', 'center'] );\n      }\n\n\n      return styles.reduce((cur,item)=>{\n        return `${cur} ${item[0]}:${item[1]};`;\n      },'');\n  }\n\n  $: style = getStyles(size,color,flip,rotate);\n</script>\n\n\n<svg viewBox=\"0 0 24 24\" {style}>\n{#if spin !== false}\n  {#if inverse}\n    <style>@keyframes spin-inverse { to { transform: rotate(-360deg) } }</style>\n  {:else}\n    <style>@keyframes spin { to { transform: rotate(360deg) } }</style>\n  {/if}\n    <g style={`animation: ${spinfunc} linear ${spintime}s infinite; transform-origin: center`}>\n      <path d={path}></path>\n    </g>\n   {:else}\n  <path d={path}></path>\n{/if} \n</svg>\n\n<style>\nsvg{\n    vertical-align: middle;\n}\n</style>\n"
+  ],
+  "names": [],
+  "mappings": "AAyEA,iBAAG,CAAC,AACA,cAAc,CAAE,MAAM,AAC1B,CAAC"
+}
