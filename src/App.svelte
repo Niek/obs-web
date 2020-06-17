@@ -1,6 +1,8 @@
 <script>
   // Import SCSS
   import './style.scss';
+  import { mdiFullscreen, mdiFullscreenExit } from '@mdi/js';
+  import Icon from 'mdi-svelte';
 
   // Import OBS-websocket
   import OBSWebSocket from 'obs-websocket-js';
@@ -24,7 +26,8 @@
   // State
   let connected,
     heartbeat,
-    currentScene = false;
+    currentScene,
+    isFullScreen = false;
   let scenes = [];
   let host,
     password,
@@ -33,6 +36,15 @@
     .fill()
     .map((_, index) => index * 4)
     .map(begin => scenes.slice(begin, begin + 4));
+
+  function toggleFullScreen() {
+    if (isFullScreen) {
+      document.exitFullscreen && document.exitFullscreen();
+    } else {
+      document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+    }
+    isFullScreen = !isFullScreen;
+  }
 
   // OBS functions
   async function setScene(e) {
@@ -50,7 +62,9 @@
   async function updateScenes() {
     let data = await obs.send('GetSceneList');
     currentScene = data.currentScene;
-    scenes = data.scenes.filter(i => { return i.name.indexOf('(hidden)') === -1 }); // Skip hidden scenes
+    scenes = data.scenes.filter(i => {
+      return i.name.indexOf('(hidden)') === -1;
+    }); // Skip hidden scenes
     console.log('Scenes updated');
   }
 
@@ -168,6 +182,12 @@
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class="button is-link is-light" on:click={toggleFullScreen} title="Toggle fullscreen">   
+            <span class="icon">
+              <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
+            </span>
+          </a>
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
             <a class="button is-info is-light" disabled>

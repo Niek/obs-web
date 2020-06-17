@@ -7,9 +7,12 @@
     "start": "sirv public"
   },
   "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^2.3.0",
+    "@mdi/js": "^5.3.45",
     "@rollup/plugin-commonjs": "^12.0.0",
     "@rollup/plugin-node-resolve": "^8.0.0",
     "bulma": "^0.9.0",
+    "mdi-svelte": "^1.1.1",
     "node-sass": "^4.14.1",
     "obs-websocket-js": "github:Niek/obs-websocket-js",
     "rollup": "^2.3.4",
