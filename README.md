@@ -2,21 +2,22 @@
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
 [![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
-#### The easiest way to control OBS remotely
+#### The easiest way to control [OBS](https://obsproject.com/) remotely
 
 ### **URL: http://obs-web.niek.tv/**
 
 ---
+#### Screenshot:
+![Screenshot of OBS-web](.github/screenshot.png)
 
 #### Features:
 - No installation needed, works in any browser (desktop + mobile)
+- Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket#connecting-over-a-tlssecure-connection-or-remotely)
 - Easily switch scenes and start/stop streaming
-- Hide scenes that have ``(hidden)`` in their name
 - Preview of output, updating continuously
 - Fullscreen button and wakelock support
 - Easy bookmarking/deeplink by specifying host in URL
-- Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket#connecting-over-a-tlssecure-connection-or-remotely)
-
+- Hide scenes that have ``(hidden)`` in their name
 ---
 
 #### Requirements:
