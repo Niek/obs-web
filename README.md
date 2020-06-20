@@ -11,7 +11,7 @@
 ![Screenshot of OBS-web](.github/screenshot.png)
 
 #### Features:
-- No installation needed, works in any browser (desktop + mobile)
+- No installation needed, works in any modern browser (desktop + mobile)
 - Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket#connecting-over-a-tlssecure-connection-or-remotely)
 - Easily switch scenes and start/stop streaming
 - Preview of output, updating continuously

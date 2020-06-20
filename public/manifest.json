@@ -1,0 +1,14 @@
+{
+    "short_name": "OBS-web",
+    "name": "OBS-web - The easiest way to control OBS remotely",
+    "icons": [
+      {
+        "src": "favicon.png",
+        "sizes": "96x96",
+        "type": "image/png"
+      }
+    ],
+    "start_url": "/index.html",
+    "display": "standalone",
+    "orientation": "landscape"
+  }
