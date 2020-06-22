@@ -35,7 +35,8 @@
       });
     }
 
-    if (document.location.hash != '') { // Read host from hash
+    if (document.location.hash != '') {
+      // Read host from hash
       host = document.location.hash.slice(1);
       await connect();
     }
@@ -189,7 +190,7 @@
       <div class="navbar-item">
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
-          <a class="button is-link is-light" on:click={toggleFullScreen} title="Toggle fullscreen">   
+          <a class="button is-link is-light" on:click={toggleFullScreen} title="Toggle fullscreen">
             <span class="icon">
               <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
             </span>
@@ -240,7 +241,9 @@
       <h1 class="subtitle">
         Welcome to
         <strong>OBS-web</strong>
-        - the easiest way to control OBS remotely!
+        - the easiest way to control
+        <a href="https://obsproject.com/" target="_blank">OBS</a>
+        remotely!
       </h1>
 
       {#if document.location.protocol === 'https:'}
@@ -270,7 +273,13 @@
         <p class="control">
           <button on:click={connect} class="button is-success">Connect</button>
         </p>
+
       </div>
+      <p class="help">
+        Make sure that the
+        <a href="https://github.com/Palakis/obs-websocket/releases" target="_blank">obs-websocket plugin</a>
+        is installed and enabled.
+      </p>
     {/if}
   </div>
 
@@ -282,7 +291,7 @@
       <strong>OBS-web</strong>
       by
       <a href="https://niekvandermaas.nl/">Niek van der Maas</a>
-      . See
+      &mdash; see
       <a href="https://github.com/Niek/obs-web">GitHub</a>
       for source code.
     </p>
