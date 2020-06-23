@@ -1,4 +1,5 @@
 /node_modules/
-/public/build/
+/public/bundle-*
+/public/index.html
 package-lock.json
 .DS_Store

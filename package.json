@@ -10,6 +10,7 @@
     "@fullhuman/postcss-purgecss": "^2.3.0",
     "@mdi/js": "^5.3.45",
     "@rollup/plugin-commonjs": "^13.0.0",
+    "@rollup/plugin-html": "^0.2.0",
     "@rollup/plugin-node-resolve": "^8.0.0",
     "bulma": "^0.9.0",
     "mdi-svelte": "^1.1.1",
