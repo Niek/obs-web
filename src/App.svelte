@@ -100,11 +100,17 @@
 
   async function connect() {
     host = host || 'localhost:4444';
-    console.log('Connecting to:', host, 'using password:', password);
+    let secure = location.protocol === 'https:' || host.endsWith(':443');
+    if (host.indexOf('://') !== -1) {
+      let url = new URL(host);
+      secure = url.protocol === 'wss:' || url.protocol === 'https:';
+      host = url.hostname + ':' + (url.port ? url.port : (secure ? 443 : 80));
+    }
+    console.log('Connecting to:', host, '- secure:', secure, '- using password:', password);
     await disconnect();
     connected = false;
     try {
-      await obs.connect({ address: host, password, secure: location.protocol === 'https:' });
+      await obs.connect({ address: host, password, secure });
     } catch (e) {
       console.log(e);
       errorMessage = e.description;
