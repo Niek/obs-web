@@ -241,12 +241,14 @@
       <div class="navbar-item">
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
-          <a class="button is-link {isStudioMode ? '' : 'is-light'}" on:click={toggleStudioMode} title="Toggle Studio Mode">
-            <span class="icon">
-              <Icon path={mdiBorderVertical} />
-            </span>
-            <span>{isStudioMode ? 'Studio Mode On' : 'Studio Mode'}</span>
-          </a>
+          {#if connected}
+            <a class="button is-link {isStudioMode ? '' : 'is-light'}" on:click={toggleStudioMode} title="Toggle Studio Mode">
+              <span class="icon">
+                <Icon path={mdiBorderVertical} />
+              </span>
+              <span>{isStudioMode ? 'Studio Mode On' : 'Studio Mode'}</span>
+            </a>
+          {/if}
           <!-- svelte-ignore a11y-missing-attribute -->
           <a class="button is-link is-light" on:click={toggleFullScreen} title="Toggle fullscreen">
             <span class="icon">
