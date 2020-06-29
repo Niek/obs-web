@@ -31,7 +31,8 @@ export default {
 
 		resolve({
 			browser: true,
-			dedupe: ['svelte']
+			dedupe: ['svelte'],
+			preferBuiltins: true
 		}),
 		commonjs(),
 		nodePolyfills(),
