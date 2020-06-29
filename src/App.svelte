@@ -12,16 +12,19 @@
   onMount(async () => {
     // Request screen wakelock
     if ('wakeLock' in navigator) {
-      navigator.wakeLock.request('screen').then(lock => {
-        wakeLock = lock;
+      navigator.wakeLock
+        .request('screen')
+        .then(lock => {
+          wakeLock = lock;
 
-        // Re-request when coming back
-        document.addEventListener('visibilitychange', () => {
-          if (document.visibilityState === 'visible') {
-            wakeLock = navigator.wakeLock.request('screen');
-          }
-        });
-      }).catch();
+          // Re-request when coming back
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              wakeLock = navigator.wakeLock.request('screen');
+            }
+          });
+        })
+        .catch();
     }
 
     // Listen for fullscreen changes
@@ -74,16 +77,8 @@
     }
   }
 
-  function toggleStudioMode() {
-    obs.send('ToggleStudioMode').then(_ => {
-      isStudioMode = !isStudioMode;
-
-      if (!isStudioMode) {
-        currentPreviewScene = false;
-      } else {
-        updateScenes();
-      }
-    });
+  async function toggleStudioMode() {
+    await sendCommand('ToggleStudioMode');
   }
 
   // OBS functions
@@ -150,6 +145,7 @@
         let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
         if (data && data.img) {
           document.querySelector('#preview').src = data.img;
+          document.querySelector('#preview').classList.remove('is-hidden');
         }
       }
     }
@@ -232,6 +228,12 @@
 
   obs.on('StudioModeSwitched', data => {
     console.log(`Studio Mode: ${data.newState}`);
+    isStudioMode = data.newState;
+    if (!isStudioMode) {
+      currentPreviewScene = false;
+    } else {
+      updateScenes();
+    }
   });
 
   obs.on('PreviewSceneChanged', data => {
@@ -324,12 +326,10 @@
       <div class="columns is-centered is-vcentered has-text-centered">
         {#if isStudioMode}
           <div class="column">
-            <figure class="image is-16by9 has-background-dark">
-              <img id="preview" alt="Preview" />
-            </figure>
+            <img id="preview" class="is-hidden has-background-dark" alt="Preview" />
           </div>
           <div class="column is-narrow">
-              <button on:click={transitionScene} class="button is-fullwidth is-info">Transition</button>
+            <button on:click={transitionScene} class="button is-fullwidth is-info">Transition</button>
           </div>
         {/if}
         <div class="column">
