@@ -12,15 +12,22 @@
   onMount(async () => {
     // Request screen wakelock
     if ('wakeLock' in navigator) {
-      wakeLock = await navigator.wakeLock.request('screen');
+      navigator.wakeLock.request('screen').then(lock => {
+        wakeLock = lock;
 
-      // Re-request when coming back
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          wakeLock = navigator.wakeLock.request('screen');
-        }
-      });
+        // Re-request when coming back
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') {
+            wakeLock = navigator.wakeLock.request('screen');
+          }
+        });
+      }).catch();
     }
+
+    // Listen for fullscreen changes
+    document.addEventListener('fullscreenchange', event => {
+      isFullScreen = document.fullscreenElement;
+    });
 
     // Hamburger menu
     const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
@@ -65,7 +72,6 @@
     } else {
       document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
     }
-    isFullScreen = !isFullScreen;
   }
 
   function toggleStudioMode() {
@@ -81,32 +87,37 @@
   }
 
   // OBS functions
-  async function setScene(e) {
-    await obs.send('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
-  }
-
-  async function transitionScene(e) {
+  async function sendCommand(command, params) {
     try {
-      await obs.send('TransitionToProgram');
-    } catch (err) {
-      console.log('Transition called while not in studio mode.');
+      return await obs.send(command, params || {});
+    } catch (e) {
+      console.log('Error sending command', command, ' - error is:', e);
+      return {};
     }
   }
 
+  async function setScene(e) {
+    await sendCommand('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
+  }
+
+  async function transitionScene(e) {
+    await sendCommand('TransitionToProgram');
+  }
+
   async function setPreview(e) {
-    await obs.send('SetPreviewScene', { 'scene-name': e.currentTarget.textContent });
+    await sendCommand('SetPreviewScene', { 'scene-name': e.currentTarget.textContent });
   }
 
   async function startStream() {
-    await obs.send('StartStreaming');
+    await sendCommand('StartStreaming');
   }
 
   async function stopStream() {
-    await obs.send('StopStreaming');
+    await sendCommand('StopStreaming');
   }
 
   async function updateScenes() {
-    let data = await obs.send('GetSceneList');
+    let data = await sendCommand('GetSceneList');
     currentScene = data.currentScene;
     scenes = data.scenes.filter(i => {
       return i.name.indexOf('(hidden)') === -1;
@@ -124,20 +135,20 @@
   }
 
   async function getStudioMode() {
-    let data = await obs.send('GetStudioModeStatus');
-    isStudioMode = data.studioMode;
+    let data = await sendCommand('GetStudioModeStatus');
+    isStudioMode = (data && data.studioMode) || false;
   }
 
   async function getScreenshot() {
     if (connected) {
-      let data = await obs.send('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
-      if (data.img) {
+      let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
+      if (data && data.img) {
         document.querySelector('#program').src = data.img;
       }
 
       if (isStudioMode) {
-        let data = await obs.send('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
-        if (data.img) {
+        let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
+        if (data && data.img) {
           document.querySelector('#preview').src = data.img;
         }
       }
@@ -187,7 +198,7 @@
     console.log('Connected');
     connected = true;
     document.location.hash = host; // For easy bookmarking
-    await obs.send('SetHeartbeat', { enable: true });
+    await sendCommand('SetHeartbeat', { enable: true });
     await getStudioMode();
     await updateScenes();
     await getScreenshot();
@@ -252,7 +263,7 @@
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
-                  <!-- svelte-ignore a11y-missing-attribute -->
+          <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
             <a class="button is-info is-light" disabled>
               {#if heartbeat}
@@ -310,20 +321,18 @@
           {/each}
         </div>
       {/each}
-      <div class="columns is-centered">
+      <div class="columns is-centered is-vcentered has-text-centered">
         {#if isStudioMode}
-          <div class="column is-third has-text-centered">
+          <div class="column">
             <figure class="image is-16by9 has-background-dark">
               <img id="preview" alt="Preview" />
             </figure>
           </div>
-          <div class="columns column is-third is-centered is-vcentered has-text-centered">
-            <div class="column is-three-quarters">
-              <button on:click={transitionScene} class="button is-fullwidth is-info py-5">Transition</button>
-            </div>
+          <div class="column is-narrow">
+              <button on:click={transitionScene} class="button is-fullwidth is-info">Transition</button>
           </div>
         {/if}
-        <div class="column is-third has-text-centered">
+        <div class="column">
           <img id="program" alt="Program" class="is-hidden" />
         </div>
       </div>
