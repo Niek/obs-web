@@ -28,8 +28,16 @@
     }
 
     // Listen for fullscreen changes
-    document.addEventListener('fullscreenchange', event => {
+    document.addEventListener('fullscreenchange', () => {
       isFullScreen = document.fullscreenElement;
+    });
+
+    document.addEventListener('webkitfullscreenchange', () => {
+      isFullScreen = document.webkitFullscreenElement;
+    });
+
+    document.addEventListener('msfullscreenchange', () => {
+      isFullScreen = document.msFullscreenElement;
     });
 
     // Hamburger menu
@@ -71,9 +79,21 @@
 
   function toggleFullScreen() {
     if (isFullScreen) {
-      document.exitFullscreen && document.exitFullscreen();
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
     } else {
-      document.documentElement.requestFullscreen && document.documentElement.requestFullscreen();
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        document.documentElement.msRequestFullscreen();
+      }
     }
   }
 
