@@ -2,7 +2,7 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit } from '@mdi/js';
+  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical } from '@mdi/js';
   import Icon from 'mdi-svelte';
 
   // Import OBS-websocket
@@ -46,7 +46,9 @@
   let connected,
     heartbeat,
     currentScene,
+    currentPreviewScene,
     isFullScreen,
+    isStudioMode,
     wakeLock = false;
   let scenes = [];
   let host,
@@ -66,9 +68,33 @@
     isFullScreen = !isFullScreen;
   }
 
+  function toggleStudioMode() {
+    obs.send('ToggleStudioMode').then(_ => {
+      isStudioMode = !isStudioMode;
+
+      if (!isStudioMode) {
+        currentPreviewScene = false;
+      } else {
+        updateScenes();
+      }
+    });
+  }
+
   // OBS functions
   async function setScene(e) {
     await obs.send('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
+  }
+
+  async function transitionScene(e) {
+    try {
+      await obs.send('TransitionToProgram');
+    } catch (err) {
+      console.log('Transition called while not in studio mode.');
+    }
+  }
+
+  async function setPreview(e) {
+    await obs.send('SetPreviewScene', { 'scene-name': e.currentTarget.textContent });
   }
 
   async function startStream() {
@@ -85,14 +111,35 @@
     scenes = data.scenes.filter(i => {
       return i.name.indexOf('(hidden)') === -1;
     }); // Skip hidden scenes
+    if (isStudioMode) {
+      obs
+        .send('GetPreviewScene')
+        .then(data => (currentPreviewScene = data.name))
+        .catch(_ => {
+          // Switching off studio mode calls SwitchScenes, which will trigger this
+          // before the socket has recieved confirmation of disabled studio mode.
+        });
+    }
     console.log('Scenes updated');
+  }
+
+  async function getStudioMode() {
+    let data = await obs.send('GetStudioModeStatus');
+    isStudioMode = data.studioMode;
   }
 
   async function getScreenshot() {
     if (connected) {
       let data = await obs.send('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
       if (data.img) {
-        document.querySelector('#preview').src = data.img;
+        document.querySelector('#program').src = data.img;
+      }
+
+      if (isStudioMode) {
+        let data = await obs.send('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
+        if (data.img) {
+          document.querySelector('#preview').src = data.img;
+        }
       }
     }
     setTimeout(getScreenshot, 1000);
@@ -104,7 +151,7 @@
     if (host.indexOf('://') !== -1) {
       let url = new URL(host);
       secure = url.protocol === 'wss:' || url.protocol === 'https:';
-      host = url.hostname + ':' + (url.port ? url.port : (secure ? 443 : 80));
+      host = url.hostname + ':' + (url.port ? url.port : secure ? 443 : 80);
     }
     console.log('Connecting to:', host, '- secure:', secure, '- using password:', password);
     await disconnect();
@@ -141,9 +188,10 @@
     connected = true;
     document.location.hash = host; // For easy bookmarking
     await obs.send('SetHeartbeat', { enable: true });
+    await getStudioMode();
     await updateScenes();
     await getScreenshot();
-    document.querySelector('#preview').classList.remove('is-hidden');
+    document.querySelector('#program').classList.remove('is-hidden');
   });
 
   obs.on('AuthenticationFailure', async () => {
@@ -170,6 +218,15 @@
   obs.on('error', err => {
     console.error('Socket error:', err);
   });
+
+  obs.on('StudioModeSwitched', data => {
+    console.log(`Studio Mode: ${data.newState}`);
+  });
+
+  obs.on('PreviewSceneChanged', data => {
+    console.log(`New Preview Scene: ${data.sceneName}`);
+    updateScenes();
+  });
 </script>
 
 <svelte:head>
@@ -195,13 +252,7 @@
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
-          <!-- svelte-ignore a11y-missing-attribute -->
-          <a class="button is-link is-light" on:click={toggleFullScreen} title="Toggle fullscreen">
-            <span class="icon">
-              <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
-            </span>
-          </a>
-          <!-- svelte-ignore a11y-missing-attribute -->
+                  <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
             <a class="button is-info is-light" disabled>
               {#if heartbeat}
@@ -214,9 +265,20 @@
               <a class="button is-danger" on:click={startStream}>Start stream</a>
             {/if}
             <a class="button is-danger is-light" on:click={disconnect}>Disconnect</a>
+            <a class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
+              <span class="icon">
+                <Icon path={mdiBorderVertical} />
+              </span>
+            </a>
           {:else}
             <a class="button is-danger" disabled>{errorMessage || 'Not connected'}</a>
           {/if}
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class:is-light={!isFullScreen} class="button is-link" on:click={toggleFullScreen} title="Toggle Fullscreen">
+            <span class="icon">
+              <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
+            </span>
+          </a>
         </div>
       </div>
     </div>
@@ -231,16 +293,38 @@
           {#each chunk as sc}
             <div class="tile is-parent">
               <!-- svelte-ignore a11y-missing-attribute -->
-              <a on:click={setScene} class="tile is-child {currentScene == sc.name ? 'is-primary' : 'is-info'} notification">
-                <p class="title has-text-centered">{sc.name}</p>
-              </a>
+              {#if currentScene == sc.name}
+                <a class="tile is-child is-primary notification">
+                  <p class="title has-text-centered">{sc.name}</p>
+                </a>
+              {:else if currentPreviewScene == sc.name}
+                <a on:click={setScene} class="tile is-child is-warning notification">
+                  <p class="title has-text-centered">{sc.name}</p>
+                </a>
+              {:else}
+                <a on:click={isStudioMode ? setPreview : setScene} class="tile is-child is-info notification">
+                  <p class="title has-text-centered">{sc.name}</p>
+                </a>
+              {/if}
             </div>
           {/each}
         </div>
       {/each}
       <div class="columns is-centered">
-        <div class="column is-half has-text-centered">
-          <img id="preview" alt="Preview" class="is-hidden" />
+        {#if isStudioMode}
+          <div class="column is-third has-text-centered">
+            <figure class="image is-16by9 has-background-dark">
+              <img id="preview" alt="Preview" />
+            </figure>
+          </div>
+          <div class="columns column is-third is-centered is-vcentered has-text-centered">
+            <div class="column is-three-quarters">
+              <button on:click={transitionScene} class="button is-fullwidth is-info py-5">Transition</button>
+            </div>
+          </div>
+        {/if}
+        <div class="column is-third has-text-centered">
+          <img id="program" alt="Program" class="is-hidden" />
         </div>
       </div>
     {:else}
