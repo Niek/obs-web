@@ -70,19 +70,28 @@
   }
 
   function toggleStudioMode() {
-    isStudioMode = !isStudioMode;
-    obs.send('ToggleStudioMode');
-    if (!isStudioMode) {
-      currentPreviewScene = false;
-    } else {
-      updateScenes();
-      // getScreenshot();
-    }
+    obs.send('ToggleStudioMode').then(_ => {
+      isStudioMode = !isStudioMode;
+
+      if (!isStudioMode) {
+        currentPreviewScene = false;
+      } else {
+        updateScenes();
+      }
+    });
   }
 
   // OBS functions
   async function setScene(e) {
     await obs.send('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
+  }
+
+  async function transitionScene(e) {
+    try {
+      await obs.send('TransitionToProgram');
+    } catch (err) {
+      mdiConsoleLine.log('Transition called while not in studio mode.');
+    }
   }
 
   async function setPreview(e) {
@@ -104,8 +113,13 @@
       return i.name.indexOf('(hidden)') === -1;
     }); // Skip hidden scenes
     if (isStudioMode) {
-      let data = await obs.send('GetPreviewScene');
-      currentPreviewScene = data.name;
+      obs
+        .send('GetPreviewScene')
+        .then(data => (currentPreviewScene = data.name))
+        .catch(_ => {
+          // Switching off studio mode calls SwitchScenes, which will trigger this
+          // before the socket has recieved confirmation of disabled studio mode.
+        });
     }
     console.log('Scenes updated');
   }
@@ -116,7 +130,6 @@
   }
 
   async function getScreenshot() {
-    console.log(isStudioMode);
     if (connected) {
       let data = await obs.send('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
       if (data.img) {
@@ -304,11 +317,18 @@
       {/each}
       <div class="columns is-centered">
         {#if isStudioMode}
-          <div class="column is-half has-text-centered">
-            <img id="preview" alt="Preview" />
+          <div class="column is-third has-text-centered">
+            <figure class="image is-16by9 has-background-dark">
+              <img id="preview" alt="Preview" />
+            </figure>
+          </div>
+          <div class="columns column is-third is-centered is-vcentered has-text-centered">
+            <div class="column is-three-quarters">
+              <button on:click={transitionScene} class="button is-fullwidth is-info py-5">Transition</button>
+            </div>
           </div>
         {/if}
-        <div class="column is-half has-text-centered">
+        <div class="column is-third has-text-centered">
           <img id="program" alt="Program" class="is-hidden" />
         </div>
       </div>
