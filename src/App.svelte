@@ -2,8 +2,7 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit } from '@mdi/js';
-  import { mdiBorderVertical } from '@mdi/js';
+  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical } from '@mdi/js';
   import Icon from 'mdi-svelte';
 
   // Import OBS-websocket
@@ -90,7 +89,7 @@
     try {
       await obs.send('TransitionToProgram');
     } catch (err) {
-      mdiConsoleLine.log('Transition called while not in studio mode.');
+      console.log('Transition called while not in studio mode.');
     }
   }
 
@@ -253,22 +252,7 @@
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
-          <!-- svelte-ignore a11y-missing-attribute -->
-          {#if connected}
-            <a class="button is-link {isStudioMode ? '' : 'is-light'}" on:click={toggleStudioMode} title="Toggle Studio Mode">
-              <span class="icon">
-                <Icon path={mdiBorderVertical} />
-              </span>
-              <span>{isStudioMode ? 'Studio Mode On' : 'Studio Mode'}</span>
-            </a>
-          {/if}
-          <!-- svelte-ignore a11y-missing-attribute -->
-          <a class="button is-link is-light" on:click={toggleFullScreen} title="Toggle fullscreen">
-            <span class="icon">
-              <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
-            </span>
-          </a>
-          <!-- svelte-ignore a11y-missing-attribute -->
+                  <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
             <a class="button is-info is-light" disabled>
               {#if heartbeat}
@@ -281,9 +265,20 @@
               <a class="button is-danger" on:click={startStream}>Start stream</a>
             {/if}
             <a class="button is-danger is-light" on:click={disconnect}>Disconnect</a>
+            <a class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
+              <span class="icon">
+                <Icon path={mdiBorderVertical} />
+              </span>
+            </a>
           {:else}
             <a class="button is-danger" disabled>{errorMessage || 'Not connected'}</a>
           {/if}
+          <!-- svelte-ignore a11y-missing-attribute -->
+          <a class:is-light={!isFullScreen} class="button is-link" on:click={toggleFullScreen} title="Toggle Fullscreen">
+            <span class="icon">
+              <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
+            </span>
+          </a>
         </div>
       </div>
     </div>
