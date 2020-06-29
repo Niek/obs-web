@@ -22,6 +22,16 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "isctylr",
+      "name": "Isaac Taylor",
+      "avatar_url": "https://avatars0.githubusercontent.com/u/24595776?v=4",
+      "profile": "https://github.com/isctylr",
+      "contributions": [
+        "code",
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
