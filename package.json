@@ -11,7 +11,7 @@
     "@mdi/js": "^5.3.45",
     "@rollup/plugin-commonjs": "^15.0.0",
     "@rollup/plugin-html": "^0.2.0",
-    "@rollup/plugin-node-resolve": "^8.4.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
     "bulma": "^0.9.0",
     "mdi-svelte": "^1.1.1",
     "node-sass": "^4.14.1",
