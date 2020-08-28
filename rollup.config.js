@@ -23,7 +23,7 @@ export default {
 		svelte({
 			dev: !production,
 			css: css => {
-				css.write('public/bundle-v' + version + '.css', !production);
+				css.write('bundle-v' + version + '.css', !production);
 			}
 		}),
 
