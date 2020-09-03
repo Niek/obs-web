@@ -12,19 +12,16 @@
   onMount(async () => {
     // Request screen wakelock
     if ('wakeLock' in navigator) {
-      navigator.wakeLock
-        .request('screen')
-        .then(lock => {
-          wakeLock = lock;
-
+      try { 
+        wakeLock = await navigator.wakeLock.request('screen');
           // Re-request when coming back
-          document.addEventListener('visibilitychange', () => {
+          document.addEventListener('visibilitychange', async () => {
             if (document.visibilityState === 'visible') {
-              wakeLock = navigator.wakeLock.request('screen');
+              wakeLock = await navigator.wakeLock.request('screen');
             }
           });
-        })
-        .catch();
+      }
+      catch(e) { }
     }
 
     // Listen for fullscreen changes
@@ -236,28 +233,28 @@
   });
 
   // Scenes
-  obs.on('SwitchScenes', data => {
+  obs.on('SwitchScenes', async (data) => {
     console.log(`New Active Scene: ${data.sceneName}`);
-    updateScenes();
+    await updateScenes();
   });
 
   obs.on('error', err => {
     console.error('Socket error:', err);
   });
 
-  obs.on('StudioModeSwitched', data => {
+  obs.on('StudioModeSwitched', async (data) => {
     console.log(`Studio Mode: ${data.newState}`);
     isStudioMode = data.newState;
     if (!isStudioMode) {
       currentPreviewScene = false;
     } else {
-      updateScenes();
+      await updateScenes();
     }
   });
 
-  obs.on('PreviewSceneChanged', data => {
+  obs.on('PreviewSceneChanged', async(data) => {
     console.log(`New Preview Scene: ${data.sceneName}`);
-    updateScenes();
+    await updateScenes();
   });
 </script>
 
