@@ -13,6 +13,7 @@
     "@rollup/plugin-html": "^0.2.0",
     "@rollup/plugin-node-resolve": "^9.0.0",
     "bulma": "^0.9.0",
+    "compare-versions": "^3.6.0",
     "mdi-svelte": "^1.1.1",
     "node-sass": "^4.14.1",
     "obs-websocket-js": "github:Niek/obs-websocket-js",

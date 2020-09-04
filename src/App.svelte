@@ -1,9 +1,12 @@
 <script>
+  const OBS_WEBSOCKET_LATEST_VERSION = '4.8.0'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
+
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
   import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical } from '@mdi/js';
   import Icon from 'mdi-svelte';
+  import compareVersions from 'compare-versions';
 
   // Import OBS-websocket
   import OBSWebSocket from 'obs-websocket-js';
@@ -210,6 +213,11 @@
     console.log('Connected');
     connected = true;
     document.location.hash = host; // For easy bookmarking
+    const version = (await sendCommand('GetVersion')).obsWebsocketVersion || '';
+    console.log('OBS-websocket version:', version);
+    if(compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) < 0) {
+      alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.');
+    }
     await sendCommand('SetHeartbeat', { enable: true });
     await getStudioMode();
     await updateScenes();
