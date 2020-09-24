@@ -1,39 +1,51 @@
 # OBS-web
+
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
 [![All Contributors](https://img.shields.io/badge/all_contributors-4-orange.svg?style=flat-square)](#contributors-)
+
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
+
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
 
 ### **URL: http://obs-web.niek.tv/**
+
 ###### Download latest build [here](https://github.com/Niek/obs-web/archive/gh-pages.zip)
 
 ---
+
 #### Screenshot:
+
 ![Screenshot of OBS-web](.github/screenshot.png)
 
 #### Features:
+
 - No installation needed, works in any modern browser (desktop + mobile)
-- Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket#connecting-over-a-tlssecure-connection-or-remotely)
+- Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
 - Easily switch scenes and start/stop streaming
 - Support for Studio Mode (preview and program scenes)
 - Preview of output, updating continuously
 - Fullscreen button and wakelock support
 - Easy bookmarking/deeplink by specifying host in URL
-- Hide scenes that have ``(hidden)`` in their name
+- Hide scenes that have `(hidden)` in their name
+
 ---
 
 #### Requirements:
+
 - [OBS](https://obsproject.com/)
 - [OBS-websocket](https://github.com/Palakis/obs-websocket/releases) plugin
-- A tunnel service if you want to control remotely, [see these instructions](https://github.com/Palakis/obs-websocket#connecting-over-a-tlssecure-connection-or-remotely)
+- A tunnel service if you want to control remotely, [see these instructions](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
 
 ---
 
 #### Build instructions:
+
 ```bash
 npm i
 npm run dev # or: npm run build
 ```
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
@@ -52,6 +64,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 
 <!-- markdownlint-enable -->
 <!-- prettier-ignore-end -->
+
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 
 This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
