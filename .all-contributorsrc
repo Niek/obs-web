@@ -41,6 +41,15 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "rodrigograca31",
+      "name": "Rodrigo Graça",
+      "avatar_url": "https://avatars2.githubusercontent.com/u/1134310?v=4",
+      "profile": "https://blog.rodrigograca.com/",
+      "contributions": [
+        "doc"
+      ]
     }
   ],
   "contributorsPerLine": 7,
