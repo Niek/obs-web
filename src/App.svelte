@@ -4,7 +4,7 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical } from '@mdi/js';
+  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
@@ -128,6 +128,14 @@
 
   async function stopStream() {
     await sendCommand('StopStreaming');
+  }
+
+  async function startRecording() {
+    await sendCommand('StartRecording');
+  }
+
+  async function stopRecording() {
+    await sendCommand('StopRecording');
   }
 
   async function updateScenes() {
@@ -297,9 +305,42 @@
               {:else}Connected{/if}
             </a>
             {#if heartbeat && heartbeat.streaming}
-              <a class="button is-danger" on:click={stopStream}>Stop stream ({heartbeat.totalStreamTime} secs)</a>
+              <a class="button is-danger" on:click={stopStream}>
+                <span class="icon">
+                  <Icon path={mdiAccessPointOff} />
+                </span>
+                <span>
+                  Stop stream ({heartbeat.totalStreamTime} secs)
+                </span>
+              </a>
             {:else}
-              <a class="button is-danger" on:click={startStream}>Start stream</a>
+              <a class="button is-danger" on:click={startStream}>
+                <span class="icon">
+                  <Icon path={mdiAccessPoint} />
+                </span>
+                <span>
+                  Start stream
+                </span>
+              </a>
+            {/if}
+            {#if heartbeat && heartbeat.recording}
+              <a class="button is-danger" on:click={stopRecording}>
+                <span class="icon">
+                  <Icon path={mdiStop} />
+                </span>
+                <span>
+                  Stop recording ({heartbeat.totalRecordTime} secs)
+                </span>
+              </a>
+              {:else}
+              <a class="button is-danger" on:click={startRecording}>
+                <span class="icon">
+                  <Icon path={mdiRecord} />
+                </span>
+                <span>
+                  Start recording
+                </span>
+              </a>
             {/if}
             <a class="button is-danger is-light" on:click={disconnect}>Disconnect</a>
             <a class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
