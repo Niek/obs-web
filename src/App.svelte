@@ -130,6 +130,14 @@
     await sendCommand('StopStreaming');
   }
 
+  async function startRecording() {
+    await sendCommand('StartRecording');
+  }
+
+  async function stopRecording() {
+    await sendCommand('StopRecording');
+  }
+
   async function updateScenes() {
     let data = await sendCommand('GetSceneList');
     currentScene = data.currentScene;
@@ -298,8 +306,11 @@
             </a>
             {#if heartbeat && heartbeat.streaming}
               <a class="button is-danger" on:click={stopStream}>Stop stream ({heartbeat.totalStreamTime} secs)</a>
+            {:else if heartbeat && heartbeat.recording}
+              <a class="button is-danger" on:click={stopRecording}>Stop recording ({heartbeat.totalRecordTime} secs)</a>
             {:else}
               <a class="button is-danger" on:click={startStream}>Start stream</a>
+              <a class="button is-danger" on:click={startRecording}>Start recording</a>
             {/if}
             <a class="button is-danger is-light" on:click={disconnect}>Disconnect</a>
             <a class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
