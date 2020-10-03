@@ -4,7 +4,7 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiAccountBoxMultiple, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop } from '@mdi/js';
+  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
@@ -359,7 +359,7 @@
             </a>
             <a class:is-light={!isSceneOnTop} class="button is-link" on:click={switchSceneView} title="Show Scene on Top">
               <span class="icon">
-                <Icon path={mdiAccountBoxMultiple} />
+                <Icon path={mdiArrowSplitHorizontal} />
               </span>
             </a>
           {:else}
