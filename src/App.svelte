@@ -4,13 +4,16 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop } from '@mdi/js';
+  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
   // Import OBS-websocket
   import OBSWebSocket from 'obs-websocket-js';
   const obs = new OBSWebSocket();
+
+  // Import local components
+  import SceneView from './SceneView.svelte';
 
   onMount(async () => {
     // Request screen wakelock
@@ -66,6 +69,7 @@
     currentPreviewScene,
     isFullScreen,
     isStudioMode,
+    isSceneOnTop,
     wakeLock = false;
   let scenes = [];
   let host,
@@ -98,6 +102,10 @@
 
   async function toggleStudioMode() {
     await sendCommand('ToggleStudioMode');
+  }
+
+  async function switchSceneView() {
+    isSceneOnTop = !isSceneOnTop;
   }
 
   // OBS functions
@@ -166,6 +174,7 @@
       let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
       if (data && data.img) {
         document.querySelector('#program').src = data.img;
+        document.querySelector('#program').className = '';
       }
 
       if (isStudioMode) {
@@ -348,6 +357,11 @@
                 <Icon path={mdiBorderVertical} />
               </span>
             </a>
+            <a class:is-light={!isSceneOnTop} class="button is-link" on:click={switchSceneView} title="Show Scene on Top">
+              <span class="icon">
+                <Icon path={mdiArrowSplitHorizontal} />
+              </span>
+            </a>
           {:else}
             <a class="button is-danger" disabled>{errorMessage || 'Not connected'}</a>
           {/if}
@@ -366,6 +380,9 @@
 <section class="section">
   <div class="container">
     {#if connected}
+      {#if isSceneOnTop}
+        <SceneView isStudioMode={isStudioMode} transitionScene={transitionScene}/>
+      {/if}
       {#each sceneChunks as chunk}
         <div class="tile is-ancestor">
           {#each chunk as sc}
@@ -388,19 +405,9 @@
           {/each}
         </div>
       {/each}
-      <div class="columns is-centered is-vcentered has-text-centered">
-        {#if isStudioMode}
-          <div class="column">
-            <img id="preview" class="is-hidden has-background-dark" alt="Preview" />
-          </div>
-          <div class="column is-narrow">
-            <button on:click={transitionScene} class="button is-fullwidth is-info">Transition</button>
-          </div>
-        {/if}
-        <div class="column">
-          <img id="program" alt="Program" class="is-hidden" />
-        </div>
-      </div>
+      {#if !isSceneOnTop}
+        <SceneView isStudioMode={isStudioMode} transitionScene={transitionScene}/>
+      {/if}
     {:else}
       <h1 class="subtitle">
         Welcome to
