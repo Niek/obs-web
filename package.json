@@ -9,7 +9,7 @@
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^3.0.0",
     "@mdi/js": "^5.8.55",
-    "@rollup/plugin-commonjs": "^14.0.0",
+    "@rollup/plugin-commonjs": "^16.0.0",
     "@rollup/plugin-html": "^0.2.0",
     "@rollup/plugin-node-resolve": "^10.0.0",
     "bulma": "^0.9.1",
