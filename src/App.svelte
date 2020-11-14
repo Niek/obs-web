@@ -4,7 +4,7 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop } from '@mdi/js';
+  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
@@ -144,6 +144,14 @@
 
   async function stopRecording() {
     await sendCommand('StopRecording');
+  }
+
+  async function pauseRecording(){
+    await sendCommand('PauseRecording');
+  }
+
+  async function resumeRecording(){
+    await sendCommand('ResumeRecording');
   }
 
   async function updateScenes() {
@@ -333,6 +341,25 @@
               </a>
             {/if}
             {#if heartbeat && heartbeat.recording}
+              {#if heartbeat.recordingPaused}
+                <a class="button is-danger" on:click={resumeRecording}>
+                  <span class="icon">
+                    <Icon path={mdiPlayPause} />
+                  </span>
+                  <span>
+                    Resume recording
+                  </span>
+                </a>
+              {:else}
+              <a class="button is-danger" on:click={pauseRecording}>
+                <span class="icon">
+                  <Icon path={mdiPause} />
+                </span>
+                <span>
+                  Pause recording
+                </span>
+              </a>
+              {/if}
               <a class="button is-danger" on:click={stopRecording}>
                 <span class="icon">
                   <Icon path={mdiStop} />
