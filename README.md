@@ -20,7 +20,7 @@
 
 - No installation needed, works in any modern browser (desktop + mobile)
 - Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
-- Easily switch scenes and start/stop streaming
+- Easily switch scenes and start/stop streaming and recording
 - Support for Studio Mode (preview and program scenes)
 - Preview of output, updating continuously
 - Fullscreen button and wakelock support
