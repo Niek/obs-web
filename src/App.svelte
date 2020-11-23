@@ -16,9 +16,13 @@
   import SceneView from './SceneView.svelte';
 
   onMount(async () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+
     // Request screen wakelock
     if ('wakeLock' in navigator) {
-      try { 
+      try {
         wakeLock = await navigator.wakeLock.request('screen');
           // Re-request when coming back
           document.addEventListener('visibilitychange', async () => {
@@ -55,7 +59,7 @@
       });
     }
 
-    if (document.location.hash != '') {
+    if (document.location.hash !== '') {
       // Read host from hash
       host = document.location.hash.slice(1);
       await connect();

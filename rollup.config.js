@@ -62,8 +62,7 @@ export default {
 
 	<link rel='icon' type='image/png' href='favicon.png'>
 	${css}
-	<link rel='manifest' href='manifest.json'>
-
+  <link rel='manifest' href='manifest.json'>
 	${script}
 </head>
 
