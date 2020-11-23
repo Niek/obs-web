@@ -2,11 +2,11 @@
   "theme_color": "#00d1b2",
   "background_color": "#00d1b2",
   "display": "standalone",
-  "orientation": "any",
+  "orientation": "landscape",
   "scope": "/",
   "start_url": "/",
+  "name": "OBS-web",
   "short_name": "OBS-web",
-  "app_name": "OBS-web",
   "description": "OBS-web - The easiest way to control OBS remotely",
   "prefer_related_applications": false,
   "icons": [

@@ -16,6 +16,10 @@
   import SceneView from './SceneView.svelte';
 
   onMount(async () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js');
+    }
+
     // Request screen wakelock
     if ('wakeLock' in navigator) {
       try {
