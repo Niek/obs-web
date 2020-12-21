@@ -183,14 +183,14 @@
 
   async function getScreenshot() {
     if (connected) {
-      let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
+      let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'jpg', width: 960, height: 540 });
       if (data && data.img) {
         document.querySelector('#program').src = data.img;
         document.querySelector('#program').className = '';
       }
 
       if (isStudioMode) {
-        let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'jpeg', width: 960, height: 540 });
+        let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'jpg', width: 960, height: 540 });
         if (data && data.img) {
           document.querySelector('#preview').src = data.img;
           document.querySelector('#preview').classList.remove('is-hidden');
