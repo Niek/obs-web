@@ -4,7 +4,7 @@
   // Imports
   import { onMount } from 'svelte';
   import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
+  import { mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
@@ -66,6 +66,10 @@
     }
   });
 
+  // LocalStorage for IconMode
+  let initIconModeState = window.localStorage.getItem('obsdeck') ? window.localStorage.getItem('obsdeck') : null
+  let iconCollection = initIconModeState ? JSON.parse(initIconModeState) : {};
+
   // State
   let connected,
     heartbeat,
@@ -74,6 +78,7 @@
     isFullScreen,
     isStudioMode,
     isSceneOnTop,
+    isIconMode = initIconModeState ? true : false,
     wakeLock = false;
   let scenes = [];
   let host,
@@ -112,6 +117,56 @@
     isSceneOnTop = !isSceneOnTop;
   }
 
+  function toggleIconModeModal () {
+    let modalContainer = document.querySelector('.modal.define-icons');
+    if (!modalContainer.classList.contains('is-active')) {
+      modalContainer.classList.add('is-active');
+    } else {
+      modalContainer.classList.remove('is-active');
+    }
+  }
+
+  function handleFormSubmission() {
+    handleIconModeSubmissions(document.getElementById("icon-mode-form"));
+  }
+
+  function handleIconModeSubmissions (e) {
+    const data = new FormData(e);
+    const iconNames = {};
+    const iconModeValues = {};
+    iconModeValues.isIconMode = isIconMode;
+
+    if (isIconMode) {
+      scenes.forEach(item => {
+        let name = item.name;
+        iconNames[`${name}`] = data.get(`icon-${name.replace(/\s/g, "_")}`).trim();
+      });
+
+      iconModeValues.iconNames = iconNames;
+      window.localStorage.setItem('obsdeck', JSON.stringify(iconModeValues));
+      iconCollection = iconModeValues;
+    } else {
+      window.localStorage.removeItem('obsdeck');
+    }
+
+    toggleIconModeModal();    
+  }
+
+  function handleIconCss (background) {
+    let styled = `
+      height: 64px;
+      width: 64px;
+      box-shadow: 0 0 5px;
+      margin: .5em;
+      border-radius: 5px;
+      cursor: pointer;
+      background: `;
+    if (!background) { return styled.concat("white") }
+    return background.startsWith('#') ?
+      styled.concat(background)
+      : styled.concat(`url(${background}) no-repeat center center / cover`);
+  }
+
   // OBS functions
   async function sendCommand(command, params) {
     try {
@@ -126,12 +181,20 @@
     await sendCommand('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
   }
 
+  async function setSceneFromIcon(e) {
+    await sendCommand('SetCurrentScene', { 'scene-name': e.currentTarget.getAttribute('iconscene') });
+  }
+
   async function transitionScene(e) {
     await sendCommand('TransitionToProgram');
   }
 
   async function setPreview(e) {
     await sendCommand('SetPreviewScene', { 'scene-name': e.currentTarget.textContent });
+  }
+  
+  async function setPreviewFromIcon(e) {
+    await sendCommand('SetPreviewScene', { 'scene-name': e.currentTarget.getAttribute('iconscene') });
   }
 
   async function startStream() {
@@ -393,6 +456,11 @@
                 <Icon path={mdiArrowSplitHorizontal} />
               </span>
             </a>
+            <a class:is-light={!isIconMode} class="button is-link" title="Edit IconMode" on:click={toggleIconModeModal}>
+              <span class="icon">
+                <Icon path={isIconMode ? mdiImageEditOutline : mdiImageEdit} />
+              </span>
+            </a>
           {:else}
             <a class="button is-danger" disabled>{errorMessage || 'Not connected'}</a>
           {/if}
@@ -414,28 +482,58 @@
       {#if isSceneOnTop}
         <SceneView isStudioMode={isStudioMode} transitionScene={transitionScene}/>
       {/if}
-      {#each sceneChunks as chunk}
-        <div class="tile is-ancestor">
-          {#each chunk as sc}
-            <div class="tile is-parent">
-              <!-- svelte-ignore a11y-missing-attribute -->
-              {#if currentScene == sc.name}
-                <a class="tile is-child is-primary notification">
-                  <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
-                </a>
-              {:else if currentPreviewScene == sc.name}
-                <a on:click={setScene} class="tile is-child is-warning notification">
-                  <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
-                </a>
-              {:else}
-                <a on:click={isStudioMode ? setPreview : setScene} class="tile is-child is-info notification">
-                  <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
-                </a>
-              {/if}
-            </div>
+      {#if isIconMode}
+        <div class="is-flex is-flex-grow-1 is-flex-wrap-wrap is-justify-content-center">
+          {#each scenes as sc}
+            {#if currentScene == sc.name}
+              <div
+                style="{handleIconCss(Object.keys(iconCollection).length === 0 ? '' : iconCollection.iconNames[sc.name])}; pointer-events: none; opacity: .7; position: relative;"
+                iconscene={sc.name}
+                title={sc.name}
+              >
+                <div style="position:absolute; height:10px; width: 10px; background-color: red; border-radius: 50%;right: -3px;top: -3px;" />
+              </div>
+            {:else if currentPreviewScene == sc.name}
+              <div
+                style="{handleIconCss(Object.keys(iconCollection).length === 0 ? '' : iconCollection.iconNames[sc.name])};"
+                on:click={setSceneFromIcon}
+                iconscene={sc.name}
+                title={sc.name}
+              />
+            {:else}
+              <div
+                style="{handleIconCss(Object.keys(iconCollection).length === 0 ? '' : iconCollection.iconNames[sc.name])};"
+                on:click={isStudioMode ? setPreviewFromIcon : setSceneFromIcon}
+                iconscene={sc.name}
+                title={sc.name}
+              />
+            {/if}
           {/each}
         </div>
-      {/each}
+      {:else}
+        {#each sceneChunks as chunk}
+          <div class="tile is-ancestor">
+            {#each chunk as sc}
+              <div class="tile is-parent">
+                <!-- svelte-ignore a11y-missing-attribute -->
+                {#if currentScene == sc.name}
+                  <a class="tile is-child is-primary notification">
+                    <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
+                  </a>
+                {:else if currentPreviewScene == sc.name}
+                  <a on:click={setScene} class="tile is-child is-warning notification">
+                    <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
+                  </a>
+                {:else}
+                  <a on:click={isStudioMode ? setPreview : setScene} class="tile is-child is-info notification">
+                    <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
+                  </a>
+                {/if}
+              </div>
+            {/each}
+          </div>
+        {/each}
+      {/if}
       {#if !isSceneOnTop}
         <SceneView isStudioMode={isStudioMode} transitionScene={transitionScene}/>
       {/if}
@@ -483,6 +581,63 @@
         is installed and enabled.
       </p>
     {/if}
+  </div>
+
+  <!-- IconMode Modal -->
+  <div class="modal define-icons">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">Icon Editor</p>
+        <button class="delete" aria-label="close" on:click={toggleIconModeModal}></button>
+      </header>
+      <section class="modal-card-body">
+        <form id="icon-mode-form">
+          <div class="show-icons">        
+            <div class="field">
+              <div class="control">
+                <p>Show smaller scene buttons with icon covers:</p>
+                <label class="radio">
+                  <input type=radio bind:group={isIconMode} value={true}>
+                  Yes
+                </label>
+                <label class="radio">
+                  <input type=radio bind:group={isIconMode} value={false}>
+                  No
+                </label>
+              </div>
+            </div>
+          </div>
+          <br>
+          {#if isIconMode}
+            <div class="scene-list">
+              {#each scenes as sc}
+                <div class="field">
+                  <label
+                    class="label"
+                    for="icon-{sc.name.replace(/\s/g, "_")}"
+                  >{sc.name}</label>
+                  <div class="control">
+                    <input
+                      class="input"
+                      type="text"
+                      name="icon-{sc.name.replace(/\s/g, "_")}"
+                      id="icon-{sc.name.replace(/\s/g, "_")}"
+                      placeholder="e.g., 'https://www.images.com/{sc.name}.png' or '#800000'"
+                      value={Object.keys(iconCollection).length === 0 ? '' : iconCollection.iconNames[sc.name] ? iconCollection.iconNames[sc.name] : ''}
+                    >
+                  </div>
+                  <p class="help">Enter an icon cover URL or color hex (with hash) for your "{sc.name}" scene.</p>
+                </div>
+              {/each}
+            </div>
+          {/if}
+        </form>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="button is-success" on:click={handleFormSubmission}>Save changes</button>
+      </footer>
+    </div>
   </div>
 
 </section>
