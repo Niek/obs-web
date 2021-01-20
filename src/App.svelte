@@ -627,7 +627,7 @@
                       value={Object.keys(iconCollection).length === 0 ? '' : iconCollection.iconNames[sc.name] ? iconCollection.iconNames[sc.name] : ''}
                     >
                   </div>
-                  <p class="help">Enter an icon cover URL or color hex (with hash) for your "{sc.name}" scene.</p>
+                  <p class="help">Enter an image URL or color hex (with hash) for your "{sc.name}" scene icon.</p>
                 </div>
               {/each}
             </div>
