@@ -140,6 +140,9 @@
       scenes.forEach(item => {
         let name = item.name;
         iconNames[`${name}`] = data.get(`icon-${name.replace(/\s/g, "_")}`).trim();
+        if (iconNames[`${name}`] === '') {
+          iconNames[`${name}`] = `#${Math.floor(Math.random()*16777215).toString(16)}`;
+        }
       });
 
       iconModeValues.iconNames = iconNames;
@@ -161,7 +164,6 @@
       border-radius: 5px;
       cursor: pointer;
       background: `;
-    if (!background) { return styled.concat("white") }
     return background.startsWith('#') ?
       styled.concat(background)
       : styled.concat(`url(${background}) no-repeat center center / cover`);
