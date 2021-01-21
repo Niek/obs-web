@@ -164,6 +164,7 @@
       border-radius: 5px;
       cursor: pointer;
       background: `;
+    if (!background) { return styled.concat("white") }
     return background.startsWith('#') ?
       styled.concat(background)
       : styled.concat(`url(${background}) no-repeat center center / cover`);
