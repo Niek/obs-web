@@ -2,7 +2,7 @@
   const OBS_WEBSOCKET_LATEST_VERSION = '4.8.0'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
-  import { onMount, onDestroy } from 'svelte';
+  import { onMount } from 'svelte';
   import './style.scss';
   import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
   import Icon from 'mdi-svelte';
