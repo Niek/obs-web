@@ -2,7 +2,7 @@
   const OBS_WEBSOCKET_LATEST_VERSION = '4.8.0'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import './style.scss';
   import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
   import Icon from 'mdi-svelte';
@@ -65,6 +65,12 @@
       await connect();
     }
   });
+  
+  addEventListener("beforeunload", async () => {
+    if (!connected) return;
+    console.log("Disconnecting due to browser refreshing");
+    await disconnect();
+  })
 
   // State
   let connected,
