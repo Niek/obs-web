@@ -43,7 +43,10 @@
 npm i
 npm run dev # or: npm run build
 ```
-
+#### Docker:
+```
+docker run -p 5000:5000 nathaneaston/obs-web-docker
+```
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
