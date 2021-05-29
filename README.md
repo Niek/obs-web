@@ -44,6 +44,12 @@ npm i
 npm run dev # or: npm run build
 ```
 
+#### Docker:
+
+```bash
+docker run --rm -p5000:5000 ghcr.io/Niek/obs-web
+```
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
