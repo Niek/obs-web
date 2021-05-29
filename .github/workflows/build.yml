@@ -1,4 +1,4 @@
-name: github pages
+name: GitHub build action
 
 on:
   push:
@@ -14,12 +14,12 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Setup Node
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v2
         with:
           node-version: '16.x'
 
       - name: Cache dependencies
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.npm
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -58,7 +58,7 @@ jobs:
         with:
           push: true # push to registry
           pull: true # always fetch the latest base images
-          tags: ghcr.io/Niek/obs-web:latest
+          tags: ghcr.io/niek/obs-web:latest
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
