@@ -8,7 +8,7 @@
 
 ### **URL: http://obs-web.niek.tv/**
 
-###### Download latest build [here](https://github.com/Niek/obs-web/archive/gh-pages.zip)
+###### Download latest build [here](https://github.com/Niek/obs-web/archive/gh-pages.zip).
 
 ---
 
