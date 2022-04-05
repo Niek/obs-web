@@ -1,7 +1,7 @@
 # OBS-web
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-9-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-10-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
@@ -70,6 +70,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
   <tr>
     <td align="center"><a href="https://avil13.com"><img src="https://avatars3.githubusercontent.com/u/1606172?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Aleksey Pivkin</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=avil13" title="Code">💻</a> <a href="#ideas-avil13" title="Ideas, Planning, & Feedback">🤔</a></td>
     <td align="center"><a href="http://www.nathaneaston.com/"><img src="https://avatars.githubusercontent.com/u/10368650?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nathan Easton</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=ndragon798" title="Code">💻</a></td>
+    <td align="center"><a href="https://www.shortcord.com"><img src="https://avatars.githubusercontent.com/u/3823744?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tristan Smith</b></sub></a><br /><a href="https://github.com/Niek/obs-web/issues?q=author%3Ateh-random-name" title="Bug reports">🐛</a></td>
   </tr>
 </table>
 
