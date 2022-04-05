@@ -87,6 +87,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "teh-random-name",
+      "name": "Tristan Smith",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3823744?v=4",
+      "profile": "https://www.shortcord.com",
+      "contributions": [
+        "bug"
+      ]
     }
   ],
   "contributorsPerLine": 7,
