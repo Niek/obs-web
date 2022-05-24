@@ -8,16 +8,13 @@
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
-  // Import OBS-websocket
-  import OBSWebSocket from 'obs-websocket-js';
-  const obs = new OBSWebSocket();
-
-  // Import local components
-  import SceneView from './SceneView.svelte';
+  import { obs, sendCommand } from './obs.js';
+  import ProgramPreview from './ProgramPreview.svelte';
+  import SourceButton from './SourceButton.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
+      // navigator.serviceWorker.register('/service-worker.js');
     }
 
     // Request screen wakelock
@@ -47,18 +44,6 @@
       isFullScreen = document.msFullscreenElement;
     });
 
-    // Hamburger menu
-    const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
-    if ($navbarBurgers.length > 0) {
-      $navbarBurgers.forEach(el => {
-        el.addEventListener('click', () => {
-          const target = document.getElementById(el.dataset.target);
-          el.classList.toggle('is-active');
-          target.classList.toggle('is-active');
-        });
-      });
-    }
-
     if (document.location.hash !== '') {
       // Read host from hash
       host = document.location.hash.slice(1);
@@ -69,20 +54,29 @@
   // State
   let connected,
     heartbeat,
-    currentScene,
-    currentPreviewScene,
+    programScene,
+    previewScene,
     isFullScreen,
     isStudioMode,
     isSceneOnTop,
     wakeLock = false;
   let scenes = [];
+  let sceneItems = [];
+  let sources = {};
+  let backgroundsScene = 'Pozadia';
+  let backgroundName;
+  let backgrounds = [];
   let host,
     password,
     errorMessage = '';
-  $: sceneChunks = Array(Math.ceil(scenes.length / 4))
-    .fill()
-    .map((_, index) => index * 4)
-    .map(begin => scenes.slice(begin, begin + 4));
+
+  sources[programScene] = {items: []}
+  sources[backgroundsScene] = {items: []}
+
+  $: sceneItems = sources[programScene].items || [];
+  $: updateSceneItems(sceneItems);
+  $: backgrounds = sources[backgroundsScene].items || [];
+  $: updateSceneItems(backgrounds);
 
   function toggleFullScreen() {
     if (isFullScreen) {
@@ -112,26 +106,30 @@
     isSceneOnTop = !isSceneOnTop;
   }
 
-  // OBS functions
-  async function sendCommand(command, params) {
-    try {
-      return await obs.send(command, params || {});
-    } catch (e) {
-      console.log('Error sending command', command, ' - error is:', e);
-      return {};
+  function sceneClicker(sceneName) {
+    return async function() {
+      if (isStudioMode) {
+        await sendCommand('SetPreviewScene', { 'scene-name': sceneName });
+      } else {
+        await sendCommand('SetCurrentScene', { 'scene-name': sceneName });
+      }
     }
   }
 
-  async function setScene(e) {
-    await sendCommand('SetCurrentScene', { 'scene-name': e.currentTarget.textContent });
-  }
-
-  async function transitionScene(e) {
-    await sendCommand('TransitionToProgram');
-  }
-
-  async function setPreview(e) {
-    await sendCommand('SetPreviewScene', { 'scene-name': e.currentTarget.textContent });
+  function backgroundClicker(name) {
+    return async function() {
+      await sendCommand('SetSceneItemProperties', {
+        'scene-name': backgroundsScene,
+        'item': name,
+        'visible': true,
+      });
+      await sendCommand('SetSceneItemProperties', {
+        'scene-name': backgroundsScene,
+        'item': backgroundName,
+        'visible': false,
+      });
+      backgroundName = name;
+    }
   }
 
   async function startStream() {
@@ -158,48 +156,6 @@
     await sendCommand('ResumeRecording');
   }
 
-  async function updateScenes() {
-    let data = await sendCommand('GetSceneList');
-    currentScene = data.currentScene;
-    scenes = data.scenes.filter(i => {
-      return i.name.indexOf('(hidden)') === -1;
-    }); // Skip hidden scenes
-    if (isStudioMode) {
-      obs
-        .send('GetPreviewScene')
-        .then(data => (currentPreviewScene = data.name))
-        .catch(_ => {
-          // Switching off studio mode calls SwitchScenes, which will trigger this
-          // before the socket has recieved confirmation of disabled studio mode.
-        });
-    }
-    console.log('Scenes updated');
-  }
-
-  async function getStudioMode() {
-    let data = await sendCommand('GetStudioModeStatus');
-    isStudioMode = (data && data.studioMode) || false;
-  }
-
-  async function getScreenshot() {
-    if (connected) {
-      let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentScene, embedPictureFormat: 'png', width: 960, height: 540 });
-      if (data && data.img) {
-        document.querySelector('#program').src = data.img;
-        document.querySelector('#program').className = '';
-      }
-
-      if (isStudioMode) {
-        let data = await sendCommand('TakeSourceScreenshot', { sourceName: currentPreviewScene, embedPictureFormat: 'png', width: 960, height: 540 });
-        if (data && data.img) {
-          document.querySelector('#preview').src = data.img;
-          document.querySelector('#preview').classList.remove('is-hidden');
-        }
-      }
-    }
-    setTimeout(getScreenshot, 1000);
-  }
-
   async function connect() {
     host = host || 'localhost:4444';
     let secure = location.protocol === 'https:' || host.endsWith(':443');
@@ -210,7 +166,6 @@
     }
     console.log('Connecting to:', host, '- secure:', secure, '- using password:', password);
     await disconnect();
-    connected = false;
     try {
       await obs.connect({ address: host, password, secure });
     } catch (e) {
@@ -220,15 +175,16 @@
   }
 
   async function disconnect() {
-    await obs.disconnect();
+    obs.disconnect();
     connected = false;
     errorMessage = 'Disconnected';
   }
 
   async function hostkey(event) {
-    if (event.key !== 'Enter') return;
-    await connect();
-    event.preventDefault();
+    if (event.key === 'Enter') {
+      await connect();
+      event.preventDefault();
+    }
   }
 
   // OBS events
@@ -237,6 +193,12 @@
     window.history.pushState('', document.title, window.location.pathname + window.location.search); // Remove the hash
     console.log('Connection closed');
   });
+
+  function sceneFilter(scene) {
+    // Skip hidden scenes
+    sources[scene.name] = scene;
+    return scene.name.indexOf('(hidden)') === -1;
+  }
 
   obs.on('AuthenticationSuccess', async () => {
     console.log('Connected');
@@ -248,10 +210,14 @@
       alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.');
     }
     await sendCommand('SetHeartbeat', { enable: true });
-    await getStudioMode();
-    await updateScenes();
-    await getScreenshot();
-    document.querySelector('#program').classList.remove('is-hidden');
+    sendCommand('GetStudioModeStatus').then(data => {
+      isStudioMode = (data && data.studioMode) || false;
+    });
+    let data = await sendCommand('GetSceneList');
+    programScene = data.currentScene;
+    scenes = data.scenes.filter(sceneFilter);
+    console.log('GetSceneList', programScene);
+    await updateSceneItemList();
   });
 
   obs.on('AuthenticationFailure', async () => {
@@ -269,37 +235,91 @@
     heartbeat = data;
   });
 
-  // Scenes
-  obs.on('SwitchScenes', async (data) => {
-    console.log(`New Active Scene: ${data.sceneName}`);
-    await updateScenes();
-  });
-
   obs.on('error', err => {
     console.error('Socket error:', err);
+  });
+
+  // Scenes
+  obs.on('SwitchScenes', async (data) => {
+    console.log('New Active Scene:', data.sceneName);
+    const items = data.sources || [];
+    for (const item of items) {
+      if (!sources[item.name])
+      sources[item.name] = {name: item.name};
+    }
+    sources[data.sceneName].items = items;
+    programScene = data.sceneName;
+    console.log('SwitchScenes', programScene, data.sources.length);
   });
 
   obs.on('StudioModeSwitched', async (data) => {
     console.log(`Studio Mode: ${data.newState}`);
     isStudioMode = data.newState;
-    if (!isStudioMode) {
-      currentPreviewScene = false;
-    } else {
-      await updateScenes();
-    }
+    previewScene = programScene;
   });
 
   obs.on('PreviewSceneChanged', async(data) => {
     console.log(`New Preview Scene: ${data.sceneName}`);
-    await updateScenes();
+    previewScene = data.sceneName;
+    const items = data.sources || [];
+    for (const item of items) {
+      if (!sources[item.name]) {
+        sources[item.name] = item;
+      }
+    }
+    sources[data.sceneName].items = items;
+    console.log('PreviewSceneChanged', data.sources.length);
   });
+
+  obs.on('ScenesChanged', async(data) => {
+    scenes = data.scenes.filter(sceneFilter);
+    console.log('ScenesChanged', scenes.length);
+  });
+
+  async function updateSceneItemList(name) {
+    if (!name) name = programScene;
+    let data = await sendCommand('GetSceneItemList', {sceneName: name});
+    console.log('GetSceneItemList', data.sceneItems.length, 'items');
+    for (const item of data.sceneItems) {
+      item.name = item.name || item.sourceName;
+      if (!sources[item.sourceName]) {
+        sources[item.sourceName] = {name: item.name};
+      }
+    }
+    sources[name].items = data.sceneItems || [];
+  }
+
+  async function updateSceneItems(items) {
+    for (const item of items) {
+      if (!sources[item.name]) {
+        sources[item.name] = {name: item.name};
+      }
+      if (!sources[item.name].img) {
+        sources[item.name].img = await getSourceThumbnail(item.name);
+      }
+      if (item.visible) {
+        backgroundName = item.name;
+      }
+    }
+  }
+
+  async function getSourceThumbnail(name) {
+    console.log('TakeSourceScreenshot', name);
+    let data = await sendCommand('TakeSourceScreenshot', {
+      sourceName: name,
+      embedPictureFormat: 'jpg',
+      width: 192,
+      height: 108,
+    });
+    return data.img;
+  }
 </script>
 
 <svelte:head>
   <title>OBS-web - control OBS from anywhere</title>
 </svelte:head>
 
-<nav class="navbar is-primary" role="navigation" aria-label="main navigation">
+<nav class="navbar is-primary" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
       <img src="favicon.png" alt="OBS-web" class="rotate" />
@@ -307,11 +327,11 @@
     </a>
 
     <!-- svelte-ignore a11y-missing-attribute -->
-    <a role="button" class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navmenu">
+    <button class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navmenu">
       <span aria-hidden="true" />
       <span aria-hidden="true" />
       <span aria-hidden="true" />
-    </a>
+    </button>
   </div>
 
   <div id="navmenu" class="navbar-menu">
@@ -320,88 +340,66 @@
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
-            <a class="button is-info is-light" disabled>
+            <button class="button is-info is-light" disabled>
               {#if heartbeat}
                 {Math.round(heartbeat.stats.fps)} fps, {Math.round(heartbeat.stats['cpu-usage'])}% CPU, {heartbeat.stats['output-skipped-frames']} skipped frames
               {:else}Connected{/if}
-            </a>
+            </button>
             {#if heartbeat && heartbeat.streaming}
-              <a class="button is-danger" on:click={stopStream}>
-                <span class="icon">
-                  <Icon path={mdiAccessPointOff} />
-                </span>
-                <span>
-                  Stop stream ({heartbeat.totalStreamTime} secs)
-                </span>
-              </a>
+              <button class="button is-danger" on:click={stopStream}>
+                <span class="icon"><Icon path={mdiAccessPointOff} /></span>
+                <span>Stop stream ({heartbeat.totalStreamTime} secs)</span>
+              </button>
             {:else}
-              <a class="button is-danger" on:click={startStream}>
-                <span class="icon">
-                  <Icon path={mdiAccessPoint} />
-                </span>
-                <span>
-                  Start stream
-                </span>
-              </a>
+              <button class="button is-danger" on:click={startStream}>
+                <span class="icon"><Icon path={mdiAccessPoint} /></span>
+                <span>Start stream</span>
+              </button>
             {/if}
             {#if heartbeat && heartbeat.recording}
               {#if heartbeat.recordingPaused}
-                <a class="button is-danger" on:click={resumeRecording}>
-                  <span class="icon">
-                    <Icon path={mdiPlayPause} />
-                  </span>
-                  <span>
-                    Resume recording
-                  </span>
-                </a>
+                <button class="button is-danger" on:click={resumeRecording}>
+                  <span class="icon"><Icon path={mdiPlayPause} /></span>
+                  <span>Resume recording</span>
+                </button>
               {:else}
-              <a class="button is-danger" on:click={pauseRecording}>
-                <span class="icon">
-                  <Icon path={mdiPause} />
-                </span>
-                <span>
-                  Pause recording
-                </span>
-              </a>
+              <button class="button is-danger" on:click={pauseRecording}>
+                <span class="icon"><Icon path={mdiPause} /></span>
+                <span>Pause recording</span>
+              </button>
               {/if}
-              <a class="button is-danger" on:click={stopRecording}>
-                <span class="icon">
-                  <Icon path={mdiStop} />
-                </span>
+              <button class="button is-danger" on:click={stopRecording}>
+                <span class="icon"><Icon path={mdiStop} /></span>
                 <span>
                   Stop recording ({heartbeat.totalRecordTime} secs)
                 </span>
-              </a>
+              </button>
               {:else}
-              <a class="button is-danger" on:click={startRecording}>
-                <span class="icon">
-                  <Icon path={mdiRecord} />
-                </span>
-                <span>
-                  Start recording
-                </span>
-              </a>
+              <button class="button is-danger" on:click={startRecording}>
+                <span class="icon"><Icon path={mdiRecord} /></span>
+                <span>Start recording</span>
+              </button>
             {/if}
-            <a class="button is-danger is-light" on:click={disconnect}>Disconnect</a>
-            <a class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
+            <button class="button is-danger is-light" on:click={disconnect}>Disconnect</button>
+            <button class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
               <span class="icon">
                 <Icon path={mdiBorderVertical} />
               </span>
-            </a>
-            <a class:is-light={!isSceneOnTop} class="button is-link" on:click={switchSceneView} title="Show Scene on Top">
+            </button>
+            <button class:is-light={!isSceneOnTop} class="button is-link" on:click={switchSceneView} title="Show Scene on Top">
               <span class="icon">
                 <Icon path={mdiArrowSplitHorizontal} />
               </span>
-            </a>
+            </button>
           {:else}
-            <a class="button is-danger" disabled>{errorMessage || 'Not connected'}</a>
+            <button class="button is-danger" disabled>{errorMessage || 'Not connected'}</button>
           {/if}
           <!-- svelte-ignore a11y-missing-attribute -->
-          <a class:is-light={!isFullScreen} class="button is-link" on:click={toggleFullScreen} title="Toggle Fullscreen">
+          <button class:is-light={!isFullScreen} class="button is-link" on:click={toggleFullScreen} title="Toggle Fullscreen">
             <span class="icon">
               <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
             </span>
-          </a>
+          </button>
         </div>
       </div>
     </div>
@@ -412,32 +410,39 @@
   <div class="container">
     {#if connected}
       {#if isSceneOnTop}
-        <SceneView isStudioMode={isStudioMode} transitionScene={transitionScene}/>
+        <ProgramPreview
+          isStudioMode={isStudioMode}
+          programScene={programScene}
+          previewScene={previewScene}
+        />
       {/if}
-      {#each sceneChunks as chunk}
-        <div class="tile is-ancestor">
-          {#each chunk as sc}
-            <div class="tile is-parent">
-              <!-- svelte-ignore a11y-missing-attribute -->
-              {#if currentScene == sc.name}
-                <a class="tile is-child is-primary notification">
-                  <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
-                </a>
-              {:else if currentPreviewScene == sc.name}
-                <a on:click={setScene} class="tile is-child is-warning notification">
-                  <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
-                </a>
-              {:else}
-                <a on:click={isStudioMode ? setPreview : setScene} class="tile is-child is-info notification">
-                  <p class="title has-text-centered is-size-6-mobile">{sc.name}</p>
-                </a>
-              {/if}
-            </div>
-          {/each}
-        </div>
-      {/each}
+      <ol style="list-style:none;">
+        {#each sceneItems as item}
+        <li style="display: inline-block;">
+          <SourceButton name={item.name}
+            on:click={backgroundClicker(item.name)}
+            img={sources[item.name].img}
+          />
+        </li>
+        {/each}
+      </ol>
+      <ol class="tile is-ancestor">
+        {#each scenes as scene}
+        <li class="tile is-parent">
+          <SourceButton name={scene.name}
+            on:click={sceneClicker(scene.name)}
+            isProgram={programScene == scene.name}
+            isPreview={previewScene == scene.name}
+          />
+        </li>
+        {/each}
+      </ol>
       {#if !isSceneOnTop}
-        <SceneView isStudioMode={isStudioMode} transitionScene={transitionScene}/>
+        <ProgramPreview
+          isStudioMode={isStudioMode}
+          programScene={programScene}
+          previewScene={previewScene}
+        />
       {/if}
     {:else}
       <h1 class="subtitle">
