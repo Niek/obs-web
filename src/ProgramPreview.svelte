@@ -9,6 +9,8 @@
   let program = {};
   let preview = {};
   let screenshotInterval;
+  let transitions = [];
+  let currentTransition = [];
 
   onMount(async() => {
     if (!programScene) {
@@ -18,6 +20,10 @@
     let data = await sendCommand('GetStudioModeStatus');
     isStudioMode = (data && data.studioMode) || false;
 
+    data = await sendCommand('GetTransitionList');
+    console.log('GetTransitionList', data);
+    transitions = data.transitions || [];
+    currentTransition = data['current-transition'] || '';
     screenshotInterval = setInterval(getScreenshot, 1000);
     return () => {
       clearInterval(screenshotInterval);
@@ -46,6 +52,11 @@
     console.log('SourceRenamed', data);
     if (data.previousName == programScene) programScene = data.newName;
     if (data.previousName == previewScene) previewScene = data.newName;
+  });
+
+  obs.on('TransitionListChanged', async(data) => {
+    console.log('TransitionListChanged', data);
+    transitions = data.transitions || [];
   });
 
   async function getScreenshot() {
@@ -83,9 +94,11 @@
       <img bind:this={preview} class="has-background-dark" alt="Preview" />
     </div>
     <div class="column is-narrow">
-      <button class="button is-fullwidth is-info"
-        on:click={async ()=>{await sendCommand('TransitionToProgram')}}
-        >Transition</button>
+      {#each transitions as transition}
+      <button class="button is-fullwidth is-info" style="margin-bottom: .5rem;"
+        on:click={async ()=>{await sendCommand("TransitionToProgram", {"with-transition": {"name": transition.name}})}}
+        >{transition.name}</button>
+      {/each}
     </div>
   {/if}
   <div class="column">
