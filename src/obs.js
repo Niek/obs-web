@@ -10,3 +10,7 @@ export async function sendCommand(command, params) {
     return {};
   }
 }
+
+obs.on('error', err => {
+  console.error('Socket error:', err);
+});

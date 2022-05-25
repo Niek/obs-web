@@ -10,7 +10,8 @@
 
   import { obs, sendCommand } from './obs.js';
   import ProgramPreview from './ProgramPreview.svelte';
-  import SourceButton from './SourceButton.svelte';
+  import SceneSwitcher from './SceneSwitcher.svelte';
+  import ItemSwitcher from './ItemSwitcher.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -54,29 +55,14 @@
   // State
   let connected,
     heartbeat,
-    programScene,
-    previewScene,
     isFullScreen,
     isStudioMode,
     isSceneOnTop,
-    wakeLock = false;
-  let scenes = [];
-  let sceneItems = [];
-  let sources = {};
-  let backgroundsScene = 'Pozadia';
-  let backgroundName;
-  let backgrounds = [];
-  let host,
+    wakeLock = false,
+    host,
+    scenes = [],
     password,
     errorMessage = '';
-
-  sources[programScene] = {items: []}
-  sources[backgroundsScene] = {items: []}
-
-  $: sceneItems = sources[programScene].items || [];
-  $: updateSceneItems(sceneItems);
-  $: backgrounds = sources[backgroundsScene].items || [];
-  $: updateSceneItems(backgrounds);
 
   function toggleFullScreen() {
     if (isFullScreen) {
@@ -104,32 +90,6 @@
 
   async function switchSceneView() {
     isSceneOnTop = !isSceneOnTop;
-  }
-
-  function sceneClicker(sceneName) {
-    return async function() {
-      if (isStudioMode) {
-        await sendCommand('SetPreviewScene', { 'scene-name': sceneName });
-      } else {
-        await sendCommand('SetCurrentScene', { 'scene-name': sceneName });
-      }
-    }
-  }
-
-  function backgroundClicker(name) {
-    return async function() {
-      await sendCommand('SetSceneItemProperties', {
-        'scene-name': backgroundsScene,
-        'item': name,
-        'visible': true,
-      });
-      await sendCommand('SetSceneItemProperties', {
-        'scene-name': backgroundsScene,
-        'item': backgroundName,
-        'visible': false,
-      });
-      backgroundName = name;
-    }
   }
 
   async function startStream() {
@@ -194,12 +154,6 @@
     console.log('Connection closed');
   });
 
-  function sceneFilter(scene) {
-    // Skip hidden scenes
-    sources[scene.name] = scene;
-    return scene.name.indexOf('(hidden)') === -1;
-  }
-
   obs.on('AuthenticationSuccess', async () => {
     console.log('Connected');
     connected = true;
@@ -210,14 +164,8 @@
       alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.');
     }
     await sendCommand('SetHeartbeat', { enable: true });
-    sendCommand('GetStudioModeStatus').then(data => {
-      isStudioMode = (data && data.studioMode) || false;
-    });
-    let data = await sendCommand('GetSceneList');
-    programScene = data.currentScene;
-    scenes = data.scenes.filter(sceneFilter);
-    console.log('GetSceneList', programScene);
-    await updateSceneItemList();
+    let data = await sendCommand('GetStudioModeStatus');
+    isStudioMode = (data && data.studioMode) || false;
   });
 
   obs.on('AuthenticationFailure', async () => {
@@ -235,84 +183,10 @@
     heartbeat = data;
   });
 
-  obs.on('error', err => {
-    console.error('Socket error:', err);
-  });
-
-  // Scenes
-  obs.on('SwitchScenes', async (data) => {
-    console.log('New Active Scene:', data.sceneName);
-    const items = data.sources || [];
-    for (const item of items) {
-      if (!sources[item.name])
-      sources[item.name] = {name: item.name};
-    }
-    sources[data.sceneName].items = items;
-    programScene = data.sceneName;
-    console.log('SwitchScenes', programScene, data.sources.length);
-  });
-
   obs.on('StudioModeSwitched', async (data) => {
-    console.log(`Studio Mode: ${data.newState}`);
-    isStudioMode = data.newState;
-    previewScene = programScene;
+    console.log('StudioModeSwitched', data.newState);
+    isStudioMode = (data && data.studioMode) || false;
   });
-
-  obs.on('PreviewSceneChanged', async(data) => {
-    console.log(`New Preview Scene: ${data.sceneName}`);
-    previewScene = data.sceneName;
-    const items = data.sources || [];
-    for (const item of items) {
-      if (!sources[item.name]) {
-        sources[item.name] = item;
-      }
-    }
-    sources[data.sceneName].items = items;
-    console.log('PreviewSceneChanged', data.sources.length);
-  });
-
-  obs.on('ScenesChanged', async(data) => {
-    scenes = data.scenes.filter(sceneFilter);
-    console.log('ScenesChanged', scenes.length);
-  });
-
-  async function updateSceneItemList(name) {
-    if (!name) name = programScene;
-    let data = await sendCommand('GetSceneItemList', {sceneName: name});
-    console.log('GetSceneItemList', data.sceneItems.length, 'items');
-    for (const item of data.sceneItems) {
-      item.name = item.name || item.sourceName;
-      if (!sources[item.sourceName]) {
-        sources[item.sourceName] = {name: item.name};
-      }
-    }
-    sources[name].items = data.sceneItems || [];
-  }
-
-  async function updateSceneItems(items) {
-    for (const item of items) {
-      if (!sources[item.name]) {
-        sources[item.name] = {name: item.name};
-      }
-      if (!sources[item.name].img) {
-        sources[item.name].img = await getSourceThumbnail(item.name);
-      }
-      if (item.visible) {
-        backgroundName = item.name;
-      }
-    }
-  }
-
-  async function getSourceThumbnail(name) {
-    console.log('TakeSourceScreenshot', name);
-    let data = await sendCommand('TakeSourceScreenshot', {
-      sourceName: name,
-      embedPictureFormat: 'jpg',
-      width: 192,
-      height: 108,
-    });
-    return data.img;
-  }
 </script>
 
 <svelte:head>
@@ -410,39 +284,16 @@
   <div class="container">
     {#if connected}
       {#if isSceneOnTop}
-        <ProgramPreview
-          isStudioMode={isStudioMode}
-          programScene={programScene}
-          previewScene={previewScene}
-        />
+        <ProgramPreview />
       {/if}
-      <ol style="list-style:none;">
-        {#each sceneItems as item}
-        <li style="display: inline-block;">
-          <SourceButton name={item.name}
-            on:click={backgroundClicker(item.name)}
-            img={sources[item.name].img}
-          />
-        </li>
-        {/each}
-      </ol>
-      <ol class="tile is-ancestor">
-        {#each scenes as scene}
-        <li class="tile is-parent">
-          <SourceButton name={scene.name}
-            on:click={sceneClicker(scene.name)}
-            isProgram={programScene == scene.name}
-            isPreview={previewScene == scene.name}
-          />
-        </li>
-        {/each}
-      </ol>
+      {#each scenes as scene}
+        {#if scene.name.indexOf('(switch)') > 0}
+        <ItemSwitcher sceneName={scene.name}/>
+        {/if}
+      {/each}
+      <SceneSwitcher bind:scenes={scenes} />
       {#if !isSceneOnTop}
-        <ProgramPreview
-          isStudioMode={isStudioMode}
-          programScene={programScene}
-          previewScene={previewScene}
-        />
+        <ProgramPreview />
       {/if}
     {:else}
       <h1 class="subtitle">
