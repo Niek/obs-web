@@ -13,12 +13,17 @@
   let currentTransition = [];
 
   onMount(async() => {
+    let data;
     if (!programScene) {
-      let data = await sendCommand('GetCurrentScene');
+      data = await sendCommand('GetCurrentScene');
       programScene = data.name || ''
     }
-    let data = await sendCommand('GetStudioModeStatus');
-    isStudioMode = (data && data.studioMode) || false;
+    data = await sendCommand('GetStudioModeStatus');
+    if (data && data.studioMode) {
+      isStudioMode = true;
+      data = await sendCommand('GetPreviewScene');
+      previewScene = data.name || '';
+    }
 
     data = await sendCommand('GetTransitionList');
     console.log('GetTransitionList', data);
@@ -35,7 +40,9 @@
   obs.on('StudioModeSwitched', async (data) => {
     console.log('StudioModeSwitched', data.newState);
     isStudioMode = data.newState;
-    previewScene = programScene;
+    if (isStudioMode) {
+      previewScene = programScene;
+    }
   });
 
   obs.on('PreviewSceneChanged', async(data) => {
@@ -49,7 +56,6 @@
   });
 
   obs.on('SourceRenamed', async(data) => {
-    console.log('SourceRenamed', data);
     if (data.previousName == programScene) programScene = data.newName;
     if (data.previousName == previewScene) previewScene = data.newName;
   });

@@ -1,6 +1,6 @@
 <script>
-  export let screenshots = true;
-  export let sceneName = 'Backgrounds (hidden)';
+  export let buttonStyle = 'screenshot';
+  export let name = 'Backgrounds (hidden)';
   let items = [];
   let itemsIndex = {};
   let currentItemName = '';
@@ -14,7 +14,7 @@
   })
 
   async function refreshItems() {
-    let data = await sendCommand('GetSceneItemList', {"sceneName": sceneName});
+    let data = await sendCommand('GetSceneItemList', {"sceneName": name});
     items = data.sceneItems || items;
     console.log('GetSceneItemList', items.length);
     await fillItems();
@@ -22,7 +22,7 @@
 
   async function fillItems() {
     for (var i=0; i<items.length; i++) {
-      let data = await sendCommand('GetSceneItemProperties', {"scene-name": sceneName, "item": items[i].sourceName});
+      let data = await sendCommand('GetSceneItemProperties', {"scene-name": name, "item": items[i].sourceName});
       console.log('GetSceneItemProperties', data.name);
       items[i] = data;
       itemsIndex[data.name] = i;
@@ -33,46 +33,47 @@
   }
   
   obs.on('SceneItemVisibilityChanged', async(data) => {
-    if (data['scene-name'] == sceneName) {
+    if (data['scene-name'] == name) {
       items[itemsIndex[data['item-name']]].visible = data['item-visible'];
     }
   })
 
   obs.on('SourceOrderChanged', async(data) => {
     console.log('SourceOrderChanged', data);
-    if (data['scene-name'] == sceneName) {
+    if (data['scene-name'] == name) {
       await refreshItems();
     }
   })
 
   obs.on('SceneItemAdded', async(data) => {
     console.log('SceneItemAdded', data);
-    if (data['scene-name'] == sceneName) {
+    if (data['scene-name'] == name) {
       await refreshItems();
     }
   })
 
   obs.on('SceneItemRemoved', async(data) => {
     console.log('SceneItemRemoved', data);
-    if (data['scene-name'] == sceneName) {
+    if (data['scene-name'] == name) {
       await refreshItems();
     }
   })
 
-  function backgroundClicker(name) {
-    if (currentItemName == name) return;
+  function backgroundClicker(itemName) {
     return async function() {
       await sendCommand('SetSceneItemProperties', {
-        'scene-name': sceneName,
-        'item': name,
+        'scene-name': name,
+        'item': itemName,
         'visible': true,
       });
-      await sendCommand('SetSceneItemProperties', {
-        'scene-name': sceneName,
-        'item': currentItemName,
-        'visible': false,
-      });
-      currentItemName = name;
+      if (currentItemName != itemName){
+        await sendCommand('SetSceneItemProperties', {
+          'scene-name': name,
+          'item': currentItemName,
+          'visible': false,
+        });
+      }
+      currentItemName = itemName;
     }
   }
 </script>
@@ -83,7 +84,7 @@
     <SourceButton name={item.name}
       on:click={backgroundClicker(item.name)}
       isProgram={item.visible}
-      screenshot={screenshots}
+      buttonStyle={buttonStyle}
     />
   </li>
   {/each}

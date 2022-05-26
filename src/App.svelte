@@ -3,19 +3,19 @@
 
   // Imports
   import { onMount } from 'svelte';
-  import './style.scss';
-  import { mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
+  import { mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
+  import './style.scss';
   import { obs, sendCommand } from './obs.js';
   import ProgramPreview from './ProgramPreview.svelte';
   import SceneSwitcher from './SceneSwitcher.svelte';
-  import ItemSwitcher from './ItemSwitcher.svelte';
+  import SourceSwitcher from './SourceSwitcher.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
-      // navigator.serviceWorker.register('/service-worker.js');
+      navigator.serviceWorker.register('/service-worker.js');
     }
 
     // Request screen wakelock
@@ -58,12 +58,18 @@
     isFullScreen,
     isStudioMode,
     isSceneOnTop,
+    isIconMode = window.localStorage.getItem('isIconMode') || false,
+    editable = false,
     wakeLock = false,
     host,
     scenes = [],
     password,
     errorMessage = '';
 
+  $: isIconMode 
+      ? window.localStorage.setItem('isIconMode', "true")
+      : window.localStorage.removeItem('isIconMode');
+  
   function toggleFullScreen() {
     if (isFullScreen) {
       if (document.exitFullscreen) {
@@ -265,6 +271,11 @@
                 <Icon path={mdiArrowSplitHorizontal} />
               </span>
             </button>
+            <button class:is-light={!editable} class="button is-link" title="Edit IconMode" on:click={()=>(editable=!editable)}>
+              <span class="icon">
+                <Icon path={editable ? mdiImageEditOutline : mdiImageEdit} />
+              </span>
+            </button>
           {:else}
             <button class="button is-danger" disabled>{errorMessage || 'Not connected'}</button>
           {/if}
@@ -286,15 +297,18 @@
       {#if isSceneOnTop}
         <ProgramPreview />
       {/if}
-      {#each scenes as scene}
-        {#if scene.name.indexOf('(switch)') > 0}
-        <ItemSwitcher sceneName={scene.name}/>
-        {/if}
-      {/each}
-      <SceneSwitcher bind:scenes={scenes} />
+      {#if editable}
+        <label><input type="checkbox" bind:checked={isIconMode} /> Show Scenes as Icons</label>
+      {/if}
+      <SceneSwitcher bind:scenes={scenes} buttonStyle={isIconMode ? "icon" : "text"} editable={editable} />
       {#if !isSceneOnTop}
         <ProgramPreview />
       {/if}
+      {#each scenes as scene}
+        {#if scene.name.indexOf('(switch)') > 0}
+        <SourceSwitcher name={scene.name} buttonStyle="screenshot" />
+        {/if}
+      {/each}
     {:else}
       <h1 class="subtitle">
         Welcome to
