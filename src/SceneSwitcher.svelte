@@ -92,8 +92,10 @@
   {#if editable}
     {#each scenes as scene}
     <li>
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label class="label">Name</label>
       <input type="text" class="input" title={scene.name} value={scene.name} on:change={onNameChange} />
+      <!-- svelte-ignore a11y-label-has-associated-control -->
       <label class="label">Icon</label>
       <input type="text" class="input" title={scene.name} value={sceneIcons[scene.name] || ""} on:change={onIconChange} />
     </li>

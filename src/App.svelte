@@ -141,7 +141,7 @@
   }
 
   async function disconnect() {
-    obs.disconnect();
+    await obs.disconnect();
     connected = false;
     errorMessage = 'Disconnected';
   }
