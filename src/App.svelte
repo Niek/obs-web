@@ -3,7 +3,7 @@
 
   // Imports
   import { onMount } from 'svelte';
-  import { mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause } from '@mdi/js';
+  import { mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline, mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause, mdiConnection } from '@mdi/js';
   import Icon from 'mdi-svelte';
   import compareVersions from 'compare-versions';
 
@@ -12,6 +12,8 @@
   import ProgramPreview from './ProgramPreview.svelte';
   import SceneSwitcher from './SceneSwitcher.svelte';
   import SourceSwitcher from './SourceSwitcher.svelte';
+  import ProfileSelect from './ProfileSelect.svelte';
+  import SceneCollectionSelect from './SceneCollectionSelect.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -54,7 +56,7 @@
 
   // State
   let connected,
-    heartbeat,
+    heartbeat = false,
     isFullScreen,
     isStudioMode,
     isSceneOnTop,
@@ -70,6 +72,16 @@
       ? window.localStorage.setItem('isIconMode', "true")
       : window.localStorage.removeItem('isIconMode');
   
+  function formatTime(secs) {
+    let hours = Math.floor(secs / 3600);
+    secs -= hours * 3600;
+    let mins = Math.floor(secs / 60);
+    secs -= mins * 60;
+    return (hours > 0)
+      ? `${hours}:${mins<10?'0':''}${mins}:${secs<10?'0':''}${secs}`
+      : `${mins<10?'0':''}${mins}:${secs<10?'0':''}${secs}`;
+  }
+
   function toggleFullScreen() {
     if (isFullScreen) {
       if (document.exitFullscreen) {
@@ -226,55 +238,54 @@
               {:else}Connected{/if}
             </button>
             {#if heartbeat && heartbeat.streaming}
-              <button class="button is-danger" on:click={stopStream}>
+              <button class="button is-danger" on:click={stopStream} title="Stop stream">
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
-                <span>Stop stream ({heartbeat.totalStreamTime} secs)</span>
+                <span>{formatTime(heartbeat.totalStreamTime)}</span>
               </button>
             {:else}
-              <button class="button is-danger" on:click={startStream}>
+              <button class="button is-danger is-light" on:click={startStream} title="Start stream">
                 <span class="icon"><Icon path={mdiAccessPoint} /></span>
-                <span>Start stream</span>
               </button>
             {/if}
             {#if heartbeat && heartbeat.recording}
               {#if heartbeat.recordingPaused}
-                <button class="button is-danger" on:click={resumeRecording}>
+                <button class="button is-danger" on:click={resumeRecording} title="Resume recording">
                   <span class="icon"><Icon path={mdiPlayPause} /></span>
-                  <span>Resume recording</span>
                 </button>
               {:else}
-              <button class="button is-danger" on:click={pauseRecording}>
-                <span class="icon"><Icon path={mdiPause} /></span>
-                <span>Pause recording</span>
-              </button>
+                <button class="button is-success" on:click={pauseRecording} title="Pause recording">
+                  <span class="icon"><Icon path={mdiPause} /></span>
+                </button>
               {/if}
-              <button class="button is-danger" on:click={stopRecording}>
+              <button class="button is-danger" on:click={stopRecording} title="Stop recording">
                 <span class="icon"><Icon path={mdiStop} /></span>
-                <span>
-                  Stop recording ({heartbeat.totalRecordTime} secs)
-                </span>
+                <span>{formatTime(heartbeat.totalRecordTime)}</span>
               </button>
-              {:else}
-              <button class="button is-danger" on:click={startRecording}>
+            {:else}
+              <button class="button is-danger is-light" on:click={startRecording} title="Start recording">
                 <span class="icon"><Icon path={mdiRecord} /></span>
-                <span>Start recording</span>
               </button>
             {/if}
-            <button class="button is-danger is-light" on:click={disconnect}>Disconnect</button>
             <button class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
-              <span class="icon">
-                <Icon path={mdiBorderVertical} />
-              </span>
+              <span class="icon"><Icon path={mdiBorderVertical} /></span>
             </button>
             <button class:is-light={!isSceneOnTop} class="button is-link" on:click={switchSceneView} title="Show Scene on Top">
-              <span class="icon">
-                <Icon path={mdiArrowSplitHorizontal} />
-              </span>
+              <span class="icon"><Icon path={mdiArrowSplitHorizontal} /></span>
             </button>
-            <button class:is-light={!editable} class="button is-link" title="Edit IconMode" on:click={()=>(editable=!editable)}>
+            <button class:is-light={!editable} class="button is-link" title="Edit Scenes" on:click={()=>(editable=!editable)}>
               <span class="icon">
                 <Icon path={editable ? mdiImageEditOutline : mdiImageEdit} />
               </span>
+            </button>
+            <button class:is-light={!isIconMode} class="button is-link" title="Show Scenes as Icons" on:click={()=>(isIconMode=!isIconMode)}>
+              <span class="icon">
+                <Icon path={isIconMode ? mdiSquareRoundedBadgeOutline : mdiSquareRoundedBadge} />
+              </span>
+            </button>
+            <ProfileSelect />
+            <SceneCollectionSelect />
+            <button class="button is-danger is-light" on:click={disconnect} title="Disconnect">
+              <span class="icon"><Icon path={mdiConnection} /></span>
             </button>
           {:else}
             <button class="button is-danger" disabled>{errorMessage || 'Not connected'}</button>
@@ -296,9 +307,6 @@
     {#if connected}
       {#if isSceneOnTop}
         <ProgramPreview />
-      {/if}
-      {#if editable}
-        <label><input type="checkbox" bind:checked={isIconMode} /> Show Scenes as Icons</label>
       {/if}
       <SceneSwitcher bind:scenes={scenes} buttonStyle={isIconMode ? "icon" : "text"} editable={editable} />
       {#if !isSceneOnTop}

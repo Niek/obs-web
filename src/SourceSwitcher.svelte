@@ -16,14 +16,12 @@
   async function refreshItems() {
     let data = await sendCommand('GetSceneItemList', {"sceneName": name});
     items = data.sceneItems || items;
-    console.log('GetSceneItemList', items.length);
     await fillItems();
   }
 
   async function fillItems() {
     for (var i=0; i<items.length; i++) {
       let data = await sendCommand('GetSceneItemProperties', {"scene-name": name, "item": items[i].sourceName});
-      console.log('GetSceneItemProperties', data.name);
       items[i] = data;
       itemsIndex[data.name] = i;
       if (data.visible) {
@@ -39,21 +37,18 @@
   })
 
   obs.on('SourceOrderChanged', async(data) => {
-    console.log('SourceOrderChanged', data);
     if (data['scene-name'] == name) {
       await refreshItems();
     }
   })
 
   obs.on('SceneItemAdded', async(data) => {
-    console.log('SceneItemAdded', data);
     if (data['scene-name'] == name) {
       await refreshItems();
     }
   })
 
   obs.on('SceneItemRemoved', async(data) => {
-    console.log('SceneItemRemoved', data);
     if (data['scene-name'] == name) {
       await refreshItems();
     }

@@ -73,7 +73,7 @@
       width: 960,
       height: 540,
     });
-    if (data && data.img) {
+    if (data && data.img && program) {
       program.src = data.img;
       program.className = '';
     }
@@ -87,7 +87,7 @@
           height: 540,
         });
       }
-      if (data && data.img) {
+      if (data && data.img && preview) {
         preview.src = data.img;
       }
     }
