@@ -48,8 +48,8 @@
     });
 
     if (document.location.hash !== '') {
-      // Read host from hash
-      host = document.location.hash.slice(1);
+      // Read address from hash
+      address = document.location.hash.slice(1);
       await connect();
     }
   });
@@ -63,9 +63,9 @@
     isIconMode = window.localStorage.getItem('isIconMode') || false,
     editable = false,
     wakeLock = false,
-    host,
-    scenes = [],
+    address,
     password,
+    scenes = [],
     errorMessage = '';
 
   $: isIconMode 
@@ -135,17 +135,17 @@
   }
 
   async function connect() {
-    host = host || 'localhost:4444';
-    let secure = location.protocol === 'https:' || host.endsWith(':443');
-    if (host.indexOf('://') !== -1) {
-      let url = new URL(host);
+    address = address || 'localhost:4444';
+    let secure = location.protocol === 'https:' || address.endsWith(':443');
+    if (address.indexOf('://') !== -1) {
+      let url = new URL(address);
       secure = url.protocol === 'wss:' || url.protocol === 'https:';
-      host = url.hostname + ':' + (url.port ? url.port : secure ? 443 : 80);
+      address = url.hostname + ':' + (url.port ? url.port : secure ? 443 : 80);
     }
-    console.log('Connecting to:', host, '- secure:', secure, '- using password:', password);
+    console.log('Connecting to:', address, '- secure:', secure, '- using password:', password);
     await disconnect();
     try {
-      await obs.connect({ address: host, password, secure });
+      await obs.connect({ address: address, password, secure });
     } catch (e) {
       console.log(e);
       errorMessage = e.description;
@@ -158,7 +158,7 @@
     errorMessage = 'Disconnected';
   }
 
-  async function hostkey(event) {
+  async function onKeyup(event) {
     if (event.key === 'Enter') {
       await connect();
       event.preventDefault();
@@ -175,7 +175,7 @@
   obs.on('AuthenticationSuccess', async () => {
     console.log('Connected');
     connected = true;
-    document.location.hash = host; // For easy bookmarking
+    document.location.hash = address; // For easy bookmarking
     const version = (await sendCommand('GetVersion')).obsWebsocketVersion || '';
     console.log('OBS-websocket version:', version);
     if(compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) < 0) {
@@ -187,10 +187,10 @@
   });
 
   obs.on('AuthenticationFailure', async () => {
-    password = prompt('Please enter your password:', password);
-    if (password === null) {
+    errorMessage = 'Please enter your password:';
+    document.getElementById('password').focus();
+    if (!password) {
       connected = false;
-      password = '';
     } else {
       await connect();
     }
@@ -330,7 +330,7 @@
         <div class="notification is-danger">
           You are checking this page on a secure HTTPS connection. That's great, but it means you can
           <strong>only</strong>
-          connect to WSS (secure websocket) hosts, for example OBS exposed with
+          connect to WSS (secure websocket) addresses, for example OBS exposed with
           <a href="https://ngrok.com/">ngrok</a>
           or
           <a href="https://pagekite.net/">pagekite</a>
@@ -344,11 +344,12 @@
         </div>
       {/if}
 
-      <p>To get started, enter your OBS host below and click "connect".</p>
+      <p>To get started, enter your OBS host:port below and click "connect".</p>
 
       <div class="field is-grouped">
         <p class="control is-expanded">
-          <input id="host" on:keyup={hostkey} bind:value={host} class="input" type="text" placeholder="localhost:4444" />
+          <input id="host" on:keyup={onKeyup} bind:value={address} class="input" type="text" placeholder="localhost:4444" />
+          <input id="password" on:keyup={onKeyup} bind:value={password} class="input" type="password" placeholder="password" />
         </p>
         <p class="control">
           <button on:click={connect} class="button is-success">Connect</button>
