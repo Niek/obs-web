@@ -34,6 +34,13 @@
       catch(e) { }
     }
 
+    // Toggle the navigation hamburger menu on mobile
+    const navbar = document.querySelector('.navbar-burger');
+    navbar.addEventListener('click', () => {
+      navbar.classList.toggle('is-active');
+      document.getElementById(navbar.dataset.target).classList.toggle('is-active');
+    });
+
     // Listen for fullscreen changes
     document.addEventListener('fullscreenchange', () => {
       isFullScreen = document.fullscreenElement;
