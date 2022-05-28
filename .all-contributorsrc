@@ -96,6 +96,17 @@
       "contributions": [
         "bug"
       ]
+    },
+    {
+      "login": "filiphanes",
+      "name": "Filip Hanes",
+      "avatar_url": "https://avatars.githubusercontent.com/u/33264909?v=4",
+      "profile": "http://filiphanes.sk",
+      "contributions": [
+        "code",
+        "ideas",
+        "design"
+      ]
     }
   ],
   "contributorsPerLine": 7,
