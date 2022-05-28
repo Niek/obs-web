@@ -22,10 +22,13 @@
 - Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
 - Easily switch scenes and start/stop streaming and recording
 - Support for Studio Mode (preview and program scenes)
-- Preview of output, updating continuously
+- Preview of output, updating 1 fps
 - Fullscreen button and wakelock support
 - Easy bookmarking/deeplink by specifying host in URL
 - Hide scenes that have `(hidden)` in their name
+- Switch sources in scenes with `(switch)` in their name
+- Switch Profiles
+- Switch Scene Collections
 
 ---
 
