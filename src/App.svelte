@@ -1,5 +1,5 @@
 <script>
-  const OBS_WEBSOCKET_LATEST_VERSION = '4.8.0'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
+  const OBS_WEBSOCKET_LATEST_VERSION = '4.9.1'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
   import { onMount } from 'svelte';
@@ -236,31 +236,31 @@
               {:else}Connected{/if}
             </button>
             {#if heartbeat && heartbeat.streaming}
-              <button class="button is-danger" on:click={stopStream} title="Stop stream">
+              <button class="button is-danger" on:click={stopStream} title="Stop Stream">
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
                 <span>{formatTime(heartbeat.totalStreamTime)}</span>
               </button>
             {:else}
-              <button class="button is-danger is-light" on:click={startStream} title="Start stream">
+              <button class="button is-danger is-light" on:click={startStream} title="Start Stream">
                 <span class="icon"><Icon path={mdiAccessPoint} /></span>
               </button>
             {/if}
             {#if heartbeat && heartbeat.recording}
               {#if heartbeat.recordingPaused}
-                <button class="button is-danger" on:click={resumeRecording} title="Resume recording">
+                <button class="button is-danger" on:click={resumeRecording} title="Resume Recording">
                   <span class="icon"><Icon path={mdiPlayPause} /></span>
                 </button>
               {:else}
-                <button class="button is-success" on:click={pauseRecording} title="Pause recording">
+                <button class="button is-success" on:click={pauseRecording} title="Pause Recording">
                   <span class="icon"><Icon path={mdiPause} /></span>
                 </button>
               {/if}
-              <button class="button is-danger" on:click={stopRecording} title="Stop recording">
+              <button class="button is-danger" on:click={stopRecording} title="Stop Recording">
                 <span class="icon"><Icon path={mdiStop} /></span>
                 <span>{formatTime(heartbeat.totalRecordTime)}</span>
               </button>
             {:else}
-              <button class="button is-danger is-light" on:click={startRecording} title="Start recording">
+              <button class="button is-danger is-light" on:click={startRecording} title="Start Recording">
                 <span class="icon"><Icon path={mdiRecord} /></span>
               </button>
             {/if}
@@ -286,7 +286,7 @@
               <span class="icon"><Icon path={mdiConnection} /></span>
             </button>
           {:else}
-            <button class="button is-danger" disabled>{errorMessage || 'Not connected'}</button>
+            <button class="button is-danger" disabled>{errorMessage || 'Disconnected'}</button>
           {/if}
           <!-- svelte-ignore a11y-missing-attribute -->
           <button class:is-light={!isFullScreen} class="button is-link" on:click={toggleFullScreen} title="Toggle Fullscreen">
@@ -347,7 +347,7 @@
       <div class="field is-grouped">
         <p class="control is-expanded">
           <input id="host" on:keyup={onKeyup} bind:value={address} class="input" type="text" placeholder="localhost:4444" />
-          <input id="password" on:keyup={onKeyup} bind:value={password} class="input" type="password" placeholder="password" />
+          <input id="password" on:keyup={onKeyup} bind:value={password} class="input" type="password" placeholder="password (leave empty if you have disabled authentication)" />
         </p>
         <p class="control">
           <button on:click={connect} class="button is-success">Connect</button>
@@ -356,7 +356,7 @@
       </div>
       <p class="help">
         Make sure that the
-        <a href="https://github.com/Palakis/obs-websocket/releases" target="_blank">obs-websocket plugin</a>
+        <a href="https://github.com/Palakis/obs-websocket/releases" target="_blank">obs-websocket 4.x.x plugin</a>
         is installed and enabled.
       </p>
     {/if}
