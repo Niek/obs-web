@@ -208,15 +208,13 @@
 </script>
 
 <svelte:head>
-  <title>OBS-web - control OBS from anywhere</title>
+  <title>OBS-web remote control</title>
 </svelte:head>
 
 <nav class="navbar is-primary" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
-      <img src="favicon.png" alt="OBS-web" class="rotate" />
-      &nbsp; OBS-web
-    </a>
+      <img src="favicon.png" alt="OBS-web" class="rotate" /></a>
 
     <!-- svelte-ignore a11y-missing-attribute -->
     <button class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navmenu">
