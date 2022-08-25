@@ -13,13 +13,15 @@ jobs:
     steps:
       - name: Checkout v4
         uses: actions/checkout@v3
-        ref: obs-websocket-4
-        path: v4
+        with:
+          ref: obs-websocket-4
+          path: v4
 
       - name: Checkout v5 (master)
         uses: actions/checkout@v3
-        ref: master
-        path: v5
+        with:
+          ref: master
+          path: v5
 
       - name: Setup Node
         uses: actions/setup-node@v3
