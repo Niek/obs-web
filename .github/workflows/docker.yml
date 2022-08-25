@@ -4,7 +4,8 @@ on:
   push:
     branches:
       - master
-  
+
+jobs: 
   docker:
     name: Build and push Docker image
     runs-on: ubuntu-latest
