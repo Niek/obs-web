@@ -360,7 +360,7 @@
       <p class="help">
         Make sure that you use <a href="https://github.com/obsproject/obs-studio/releases">OBS v28+</a> or install the
         <a href="https://github.com/obsproject/obs-websocket/releases/tag/{OBS_WEBSOCKET_LATEST_VERSION}" target="_blank">obs-websocket {OBS_WEBSOCKET_LATEST_VERSION} plugin</a>
-        for v27.
+        for v27. If you use an older version of OBS, see the <a href="/v4/">archived OBS-web v4</a> page.
       </p>
     {/if}
   </div>

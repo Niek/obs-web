@@ -4,30 +4,36 @@ on:
   push:
     branches:
       - master
+      - obs-websocket-4
 
 jobs:
   deploy:
     name: Build and deploy GH pages
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout v4
         uses: actions/checkout@v3
+        ref: obs-websocket-4
+        path: v4
+
+      - name: Checkout v5 (master)
+        uses: actions/checkout@v3
+        ref: master
+        path: v5
 
       - name: Setup Node
         uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: '17'
 
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Build v4
+        run: cd v4 && npm i && npm run build
 
-      - run: npm i
-      - run: npm run build
+      - name: Build v5
+        run: cd v5 && npm i && npm run build
+
+      - name: Make a single folder with v4 and v5
+        run: cp -r v5/public . && cp -r v4/public public/v4
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
