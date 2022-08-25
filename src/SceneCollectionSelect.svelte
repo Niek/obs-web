@@ -6,23 +6,22 @@
     currentCollection = '';
 
   onMount(async function(){
-    let data = await sendCommand('ListSceneCollections');
-    collections = (data['scene-collections'] || []).map(p => p['sc-name']);
-    data = await sendCommand('GetCurrentSceneCollection');
-    currentCollection = data['sc-name'] || '';
+    let data = await sendCommand('GetSceneCollectionList');
+    collections = data.sceneCollections || []
+    currentCollection = data.currentSceneCollectionName || '';
   })
 
-  obs.on('SceneCollectionChanged', async (data) => {
-    console.log('SceneCollectionChanged', data.sceneCollection);
-    currentCollection = data.sceneCollection || '';
+  obs.on('CurrentSceneCollectionChanged', async (data) => {
+    console.log('CurrentSceneCollectionChanged', data.sceneCollectionName);
+    currentCollection = data.sceneCollectionName || '';
   });
   obs.on('SceneCollectionListChanged', async (data) => {
     console.log('SceneCollectionListChanged', data.sceneCollections.length);
-    collections = (data.sceneCollections || []).map(p => p.name);
+    collections = data.sceneCollections || [];
   });
 
   async function setCurrentCollection(event) {
-    sendCommand('SetCurrentSceneCollection', {'sc-name': event.target.value});
+    sendCommand('SetCurrentSceneCollection', {'sceneCollectionName': event.target.value});
   }
 </script>
 

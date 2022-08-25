@@ -1,5 +1,5 @@
 <script>
-  const OBS_WEBSOCKET_LATEST_VERSION = '4.9.1'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
+  const OBS_WEBSOCKET_LATEST_VERSION = '5.0.1'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
   import { onMount } from 'svelte';
@@ -63,7 +63,8 @@
 
   // State
   let connected,
-    heartbeat = false,
+    heartbeat = {},
+    heartbeatInterval,
     isFullScreen,
     isStudioMode,
     isSceneOnTop,
@@ -80,6 +81,7 @@
       : window.localStorage.removeItem('isIconMode');
   
   function formatTime(secs) {
+    secs = Math.round(secs / 1000);
     let hours = Math.floor(secs / 3600);
     secs -= hours * 3600;
     let mins = Math.floor(secs / 60);
@@ -110,7 +112,7 @@
   }
 
   async function toggleStudioMode() {
-    await sendCommand('ToggleStudioMode');
+    await sendCommand('SetStudioModeEnabled', {studioModeEnabled: !isStudioMode});
   }
 
   async function switchSceneView() {
@@ -118,58 +120,51 @@
   }
 
   async function startStream() {
-    await sendCommand('StartStreaming');
+    await sendCommand('StartStream');
   }
 
   async function stopStream() {
-    await sendCommand('StopStreaming');
+    await sendCommand('StopStream');
   }
 
   async function startRecording() {
-    await sendCommand('StartRecording');
+    await sendCommand('StartRecord');
   }
 
   async function stopRecording() {
-    await sendCommand('StopRecording');
+    await sendCommand('StopRecord');
   }
 
   async function pauseRecording(){
-    await sendCommand('PauseRecording');
+    await sendCommand('PauseRecord');
   }
 
   async function resumeRecording(){
-    await sendCommand('ResumeRecording');
+    await sendCommand('ResumeRecord');
   }
 
   async function connect() {
-    address = address || 'localhost:4444';
-    let secure = location.protocol === 'https:' || address.endsWith(':443');
-    if (address.indexOf('://') !== -1) {
-      let url = new URL(address);
-      secure = url.protocol === 'wss:' || url.protocol === 'https:';
-      address = url.hostname + ':' + (url.port ? url.port : secure ? 443 : 80);
+    address = address || 'ws://localhost:4455';
+    if (address.indexOf('://') === -1) {
+      const secure = location.protocol === 'https:' || address.endsWith(':443');
+      address = secure ? 'wss://' : 'ws://' + address;
     }
-    console.log('Connecting to:', address, '- secure:', secure, '- using password:', password);
+    console.log('Connecting to:', address,  '- using password:', password);
     await disconnect();
     try {
-      await obs.connect({ address: address, password, secure });
+      const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(address, password);
+      console.log(`Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`);
     } catch (e) {
       console.log(e);
-      errorMessage = e.description;
+      errorMessage = e.message;
     }
   }
 
   async function disconnect() {
     await obs.disconnect();
+    clearInterval(heartbeatInterval);
     connected = false;
     errorMessage = 'Disconnected';
-  }
-
-  async function onKeyup(event) {
-    if (event.key === 'Enter') {
-      await connect();
-      event.preventDefault();
-    }
   }
 
   // OBS events
@@ -179,21 +174,26 @@
     console.log('Connection closed');
   });
 
-  obs.on('AuthenticationSuccess', async () => {
+  obs.on('Identified', async () => {
     console.log('Connected');
     connected = true;
     document.location.hash = address; // For easy bookmarking
-    const version = (await sendCommand('GetVersion')).obsWebsocketVersion || '';
+    const version = (await sendCommand('GetVersion')).obsWebSocketVersion || '';
     console.log('OBS-websocket version:', version);
-    if(compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) < 0) {
+    if(compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) > 0) {
       alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.');
     }
-    await sendCommand('SetHeartbeat', { enable: true });
-    let data = await sendCommand('GetStudioModeStatus');
-    isStudioMode = (data && data.studioMode) || false;
+    heartbeatInterval = setInterval(async () => {
+      const stats = await sendCommand('GetStats');
+      const streaming = await sendCommand('GetStreamStatus');
+      const recording = await sendCommand('GetRecordStatus');
+      heartbeat = { stats, streaming, recording };
+      // console.log(heartbeat);
+    }, 1000); // Heartbeat
+    isStudioMode = (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false;
   });
 
-  obs.on('AuthenticationFailure', async () => {
+  obs.on('ConnectionError', async () => {
     errorMessage = 'Please enter your password:';
     document.getElementById('password').focus();
     if (!password) {
@@ -203,14 +203,9 @@
     }
   });
 
-  // Heartbeat
-  obs.on('Heartbeat', data => {
-    heartbeat = data;
-  });
-
-  obs.on('StudioModeSwitched', async (data) => {
-    console.log('StudioModeSwitched', data.newState);
-    isStudioMode = (data && data.studioMode) || false;
+  obs.on('StudioModeStateChanged', async (data) => {
+    console.log('StudioModeStateChanged', data.studioModeEnabled);
+    isStudioMode = data && data.studioModeEnabled;
   });
 </script>
 
@@ -238,22 +233,22 @@
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
             <button class="button is-info is-light" disabled>
-              {#if heartbeat}
-                {Math.round(heartbeat.stats.fps)} fps, {Math.round(heartbeat.stats['cpu-usage'])}% CPU, {heartbeat.stats['output-skipped-frames']} skipped frames
+              {#if heartbeat && heartbeat.stats}
+                {Math.round(heartbeat.stats.activeFps)} fps, {Math.round(heartbeat.stats.cpuUsage)}% CPU, {heartbeat.stats.renderSkippedFrames} skipped frames
               {:else}Connected{/if}
             </button>
-            {#if heartbeat && heartbeat.streaming}
+            {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button class="button is-danger" on:click={stopStream} title="Stop Stream">
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
-                <span>{formatTime(heartbeat.totalStreamTime)}</span>
+                <span>{formatTime(heartbeat.streaming.outputDuration)}</span>
               </button>
             {:else}
               <button class="button is-danger is-light" on:click={startStream} title="Start Stream">
                 <span class="icon"><Icon path={mdiAccessPoint} /></span>
               </button>
             {/if}
-            {#if heartbeat && heartbeat.recording}
-              {#if heartbeat.recordingPaused}
+            {#if heartbeat && heartbeat.recording && heartbeat.recording.outputActive}
+              {#if heartbeat.recording.outputPaused}
                 <button class="button is-danger" on:click={resumeRecording} title="Resume Recording">
                   <span class="icon"><Icon path={mdiPlayPause} /></span>
                 </button>
@@ -264,7 +259,7 @@
               {/if}
               <button class="button is-danger" on:click={stopRecording} title="Stop Recording">
                 <span class="icon"><Icon path={mdiStop} /></span>
-                <span>{formatTime(heartbeat.totalRecordTime)}</span>
+                <span>{formatTime(heartbeat.recording.outputDuration)}</span>
               </button>
             {:else}
               <button class="button is-danger is-light" on:click={startRecording} title="Start Recording">
@@ -318,8 +313,8 @@
         <ProgramPreview />
       {/if}
       {#each scenes as scene}
-        {#if scene.name.indexOf('(switch)') > 0}
-        <SourceSwitcher name={scene.name} buttonStyle="screenshot" />
+        {#if scene.sceneName.indexOf('(switch)') > 0}
+        <SourceSwitcher name={scene.sceneName} buttonStyle="screenshot" />
         {/if}
       {/each}
     {:else}
@@ -351,20 +346,21 @@
 
       <p>To get started, enter your OBS host:port below and click "connect".</p>
 
-      <div class="field is-grouped">
-        <p class="control is-expanded">
-          <input id="host" on:keyup={onKeyup} bind:value={address} class="input" type="text" placeholder="localhost:4444" />
-          <input id="password" on:keyup={onKeyup} bind:value={password} class="input" type="password" placeholder="password (leave empty if you have disabled authentication)" />
-        </p>
-        <p class="control">
-          <button on:click={connect} class="button is-success">Connect</button>
-        </p>
-
-      </div>
+      <form on:submit|preventDefault={connect}>
+        <div class="field is-grouped">
+          <p class="control is-expanded">
+              <input id="host" bind:value={address} class="input" type="text" autocomplete="" placeholder="ws://localhost:4455" />
+              <input id="password" bind:value={password} class="input" type="password" autocomplete="current-password" placeholder="password (leave empty if you have disabled authentication)" />
+          </p>
+          <p class="control">
+            <button class="button is-success">Connect</button>
+          </p>
+        </div>
+      </form>
       <p class="help">
-        Make sure that the
-        <a href="https://github.com/Palakis/obs-websocket/releases" target="_blank">obs-websocket 4.x.x plugin</a>
-        is installed and enabled.
+        Make sure that you use <a href="https://github.com/obsproject/obs-studio/releases">OBS v28+</a> or install the
+        <a href="https://github.com/obsproject/obs-websocket/releases/tag/{OBS_WEBSOCKET_LATEST_VERSION}" target="_blank">obs-websocket {OBS_WEBSOCKET_LATEST_VERSION} plugin</a>
+        for v27.
       </p>
     {/if}
   </div>

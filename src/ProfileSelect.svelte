@@ -6,23 +6,22 @@
     currentProfile = '';
 
   onMount(async function(){
-    let data = await sendCommand('ListProfiles');
-    profiles = (data.profiles || []).map(p => p['profile-name']);
-    data = await sendCommand('GetCurrentProfile');
-    currentProfile = data['profile-name'] || '';
+    let data = await sendCommand('GetProfileList');
+    profiles = data.profiles || [];
+    currentProfile = data.currentProfileName || '';
   })
 
-  obs.on('ProfileChanged', async (data) => {
-    console.log('ProfileChanged', data.profile);
-    currentProfile = data.profile || '';
+  obs.on('CurrentProfileChanged', async (data) => {
+    console.log('CurrentProfileChanged', data.profileName);
+    currentProfile = data.profileName || '';
   });
   obs.on('ProfileListChanged', async (data) => {
     console.log('ProfileListChanged', data.profiles.length);
-    profiles = (data.profiles || []).map(p => p.name);
+    profiles = data.profiles || []
   });
 
   async function setCurrentProfile(event) {
-    sendCommand('SetCurrentProfile', {'profile-name': event.target.value});
+    sendCommand('SetCurrentProfile', {'profileName': event.target.value});
   }
 </script>
 

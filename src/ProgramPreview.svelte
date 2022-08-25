@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { obs, sendCommand } from './obs.js';
 
   let isStudioMode = false;
@@ -15,51 +15,53 @@
   onMount(async() => {
     let data;
     if (!programScene) {
-      data = await sendCommand('GetCurrentScene');
-      programScene = data.name || ''
+      data = await sendCommand('GetCurrentProgramScene');
+      programScene = data.currentProgramSceneName || ''
     }
-    data = await sendCommand('GetStudioModeStatus');
-    if (data && data.studioMode) {
+    data = await sendCommand('GetStudioModeEnabled');
+    if (data && data.studioModeEnabled) {
       isStudioMode = true;
-      data = await sendCommand('GetPreviewScene');
-      previewScene = data.name || '';
+      data = await sendCommand('GetCurrentPreviewScene');
+      previewScene = data.currentPreviewSceneName || '';
     }
 
-    data = await sendCommand('GetTransitionList');
-    console.log('GetTransitionList', data);
+    data = await sendCommand('GetSceneTransitionList');
+    console.log('GetSceneTransitionList', data);
     transitions = data.transitions || [];
-    currentTransition = data['current-transition'] || '';
+    currentTransition = data.currentSceneTransitionName || '';
     screenshotInterval = setInterval(getScreenshot, 1000);
-    return () => {
-      clearInterval(screenshotInterval);
-    };
   });
+
+  onDestroy(() => {
+		clearInterval(screenshotInterval);
+	});
 
   $: getScreenshot(), programScene, previewScene;
 
-  obs.on('StudioModeSwitched', async (data) => {
-    console.log('StudioModeSwitched', data.newState);
-    isStudioMode = data.newState;
+  obs.on('StudioModeStateChanged', async (data) => {
+    console.log('StudioModeStateChanged', data.studioModeEnabled);
+    isStudioMode = data.studioModeEnabled;
     if (isStudioMode) {
       previewScene = programScene;
     }
   });
 
-  obs.on('PreviewSceneChanged', async(data) => {
-    console.log('PreviewSceneChanged', data.sceneName);
+  obs.on('CurrentPreviewSceneChanged', async(data) => {
+    console.log('CurrentPreviewSceneChanged', data.sceneName);
     previewScene = data.sceneName;
   });
   
-  obs.on('SwitchScenes', async(data) => {
-    console.log('SwitchScenes', data.sceneName);
+  obs.on('CurrentProgramSceneChanged', async(data) => {
+    console.log('CurrentProgramSceneChanged', data.sceneName);
     programScene = data.sceneName;
   });
 
-  obs.on('SourceRenamed', async(data) => {
-    if (data.previousName == programScene) programScene = data.newName;
-    if (data.previousName == previewScene) previewScene = data.newName;
+  obs.on('SceneNameChanged', async(data) => {
+    if (data.oldSceneName == programScene) programScene = data.sceneName;
+    if (data.oldSceneName == previewScene) previewScene = data.sceneName;
   });
 
+  // TODO: does not exist???
   obs.on('TransitionListChanged', async(data) => {
     console.log('TransitionListChanged', data);
     transitions = data.transitions || [];
@@ -67,28 +69,28 @@
 
   async function getScreenshot() {
     if (!programScene) return;
-    let data = await sendCommand('TakeSourceScreenshot', {
+    let data = await sendCommand('GetSourceScreenshot', {
       sourceName: programScene,
-      embedPictureFormat: 'jpg',
-      width: 960,
-      height: 540,
+      imageFormat: 'jpg',
+      imageWidth: 960,
+      imageHeight: 540,
     });
-    if (data && data.img && program) {
-      program.src = data.img;
+    if (data && data.imageData && program) {
+      program.src = data.imageData;
       program.className = '';
     }
 
     if (isStudioMode) {
       if (previewScene != programScene) {
-        data = await sendCommand('TakeSourceScreenshot', {
+        data = await sendCommand('GetSourceScreenshot', {
           sourceName: previewScene,
-          embedPictureFormat: 'jpg',
-          width: 960,
-          height: 540,
+          imageFormat: 'jpg',
+          imageWidth: 960,
+          imageHeight: 540,
         });
       }
-      if (data && data.img && preview) {
-        preview.src = data.img;
+      if (data && data.imageData && preview) {
+        preview.src = data.imageData;
       }
     }
   }
@@ -102,8 +104,11 @@
     <div class="column is-narrow">
       {#each transitions as transition}
       <button class="button is-fullwidth is-info" style="margin-bottom: .5rem;"
-        on:click={async ()=>{await sendCommand("TransitionToProgram", {"with-transition": {"name": transition.name}})}}
-        >{transition.name}</button>
+        on:click={async () => {
+          await sendCommand("SetCurrentSceneTransition", {"transitionName": transition.transitionName});
+          await sendCommand("TriggerStudioModeTransition");  
+        }}
+        >{transition.transitionName}</button>
       {/each}
     </div>
   {/if}

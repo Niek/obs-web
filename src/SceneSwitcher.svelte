@@ -13,30 +13,30 @@
   let isStudioMode = false;
   let sceneIcons = JSON.parse(window.localStorage.getItem('sceneIcons') || "{}");
 
-  $: scenesFiltered = scenes.filter((scene) => scene.name.indexOf('(hidden)') === -1);
+  $: scenesFiltered = scenes.filter((scene) => scene.sceneName.indexOf('(hidden)') === -1);
   // store sceneIcons on change
   $: window.localStorage.setItem('sceneIcons', JSON.stringify(sceneIcons));
 
   onMount(async function() {
     let data = await sendCommand('GetSceneList');
-    programScene = {name: data['current-scene']};
-    scenes = data.scenes
-    console.log('GetSceneList', programScene);
-    data = await sendCommand('GetStudioModeStatus');
-    if (data && data.studioMode) {
+    programScene = data.currentProgramSceneName || '';
+    scenes = data.scenes;
+    console.log('GetSceneList', data);
+    data = await sendCommand('GetStudioModeEnabled');
+    if (data && data.studioModeEnabled) {
       isStudioMode = true;
-      previewScene = (await sendCommand('GetPreviewScene')) || {};
+      previewScene = data.currentPreviewSceneName || '';
     }
   })
 
-  obs.on('StudioModeSwitched', async (data) => {
-    console.log('StudioModeSwitched', data.newState);
-    isStudioMode = data.newState;
+  obs.on('StudioModeStateChanged', async (data) => {
+    console.log('StudioModeStateChanged', data.studioModeEnabled);
+    isStudioMode = data.studioModeEnabled;
     previewScene = programScene;
   });
 
-  obs.on('ScenesChanged', async(data) => {
-    console.log('ScenesChanged', scenes.length);
+  obs.on('SceneListChanged', async(data) => {
+    console.log('SceneListChanged', data.scenes.length);
     scenes = data.scenes;
   });
 
@@ -45,8 +45,8 @@
       console.log('SourceRenamed', data.previousName, data.newName);
       // Rename in scenes
       for (let i=0; i < scenes.length; i++) {
-        if (scenes[i].name == data.previousName) {
-          scenes[i].name = data.newName;
+        if (scenes[i] == data.previousName) {
+          scenes[i] = data.newName;
           break;
         }
       }
@@ -58,21 +58,20 @@
   obs.on('SwitchScenes', (data) => {
     console.log('SwitchScenes', data['scene-name'], data.sources.length);
     programScene = data || {};
-    programScene.name = programScene['scene-name'];
+    programScene = programScene['scene-name'];
   });
 
-  obs.on('PreviewSceneChanged', async(data) => {
-    console.log('PreviewSceneChanged', data.sceneName);
-    previewScene = data || {};
-    previewScene.name = previewScene['scene-name'];
+  obs.on('CurrentPreviewSceneChanged', async(data) => {
+    console.log('CurrentPreviewSceneChanged', data.sceneName);
+    previewScene = data.sceneName;
   });
 
   function sceneClicker(scene) {
     return async function() {
       if (isStudioMode) {
-        await sendCommand('SetPreviewScene', { 'scene-name': scene.name });
+        await sendCommand('SetCurrentPreviewScene', { 'sceneName': scene.sceneName });
       } else {
-        await sendCommand('SetCurrentScene', { 'scene-name': scene.name });
+        await sendCommand('SetCurrentProgramScene', { 'sceneName': scene.sceneName });
       }
     }
   }
@@ -94,21 +93,21 @@
     <li>
       <!-- svelte-ignore a11y-label-has-associated-control -->
       <label class="label">Name</label>
-      <input type="text" class="input" title={scene.name} value={scene.name} on:change={onNameChange} />
+      <input type="text" class="input" title={scene.sceneName} value={scene.sceneName} on:change={onNameChange} />
       <!-- svelte-ignore a11y-label-has-associated-control -->
       <label class="label">Icon</label>
-      <input type="text" class="input" title={scene.name} value={sceneIcons[scene.name] || ""} on:change={onIconChange} />
+      <input type="text" class="input" title={scene.sceneName} value={sceneIcons[scene.sceneName] || ""} on:change={onIconChange} />
     </li>
     {/each}
   {:else}
     {#each scenesFiltered as scene}
     <li>
-      <SourceButton name={scene.name}
+      <SourceButton name={scene.sceneName}
         on:click={sceneClicker(scene)}
-        isProgram={programScene.name == scene.name}
-        isPreview={previewScene.name == scene.name}
+        isProgram={programScene == scene.sceneName}
+        isPreview={previewScene == scene.sceneName}
         buttonStyle={buttonStyle}
-        icon={sceneIcons[scene.name] || `#${Math.floor(Math.random()*16777215).toString(16)}`}
+        icon={sceneIcons[scene.sceneName] || `#${Math.floor(Math.random()*16777215).toString(16)}`}
       />
     </li>
     {/each}
