@@ -1,4 +1,4 @@
-FROM node:16-alpine
+FROM node:17-alpine
 COPY ./ ./
 RUN apk add --no-cache git && npm i && npm run build && apk del git
 EXPOSE 5000
