@@ -1,7 +1,7 @@
 # OBS-web
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-12-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-13-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
@@ -76,6 +76,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <td align="center"><a href="https://www.shortcord.com"><img src="https://avatars.githubusercontent.com/u/3823744?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Tristan Smith</b></sub></a><br /><a href="https://github.com/Niek/obs-web/issues?q=author%3Ateh-random-name" title="Bug reports">🐛</a></td>
     <td align="center"><a href="http://filiphanes.sk"><img src="https://avatars.githubusercontent.com/u/33264909?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Filip Hanes</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=filiphanes" title="Code">💻</a> <a href="#ideas-filiphanes" title="Ideas, Planning, & Feedback">🤔</a> <a href="#design-filiphanes" title="Design">🎨</a></td>
     <td align="center"><a href="https://github.com/TotalInternalReflection"><img src="https://avatars.githubusercontent.com/u/49660235?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TotalInternalReflection</b></sub></a><br /><a href="https://github.com/Niek/obs-web/issues?q=author%3ATotalInternalReflection" title="Bug reports">🐛</a></td>
+    <td align="center"><a href="https://www.nossa.me/"><img src="https://avatars.githubusercontent.com/u/17525117?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alessio Nossa</b></sub></a><br /><a href="#ideas-alessionossa" title="Ideas, Planning, & Feedback">🤔</a></td>
   </tr>
 </table>
 
