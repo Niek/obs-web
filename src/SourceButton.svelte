@@ -1,42 +1,42 @@
 <script>
-  export let name;
-  export let buttonStyle = 'text';
-  export let icon = '#ffffff';
-  export let isProgram = false;
-  export let isPreview = false;
-  let img = '';
+  export let name
+  export let buttonStyle = 'text'
+  export let icon = '#ffffff'
+  export let isProgram = false
+  export let isPreview = false
+  let img = ''
 
-  import { sendCommand } from './obs.js';
-	import { createEventDispatcher } from 'svelte';
-	const dispatch = createEventDispatcher();
+  import { sendCommand } from './obs.js'
+  import { createEventDispatcher } from 'svelte'
+  const dispatch = createEventDispatcher()
 
-  $: buttonStyle == 'screenshot' ? updateThumbnail(name) : false;
+  $: if (buttonStyle === 'screenshot') { updateThumbnail(name) }
   $: style = icon.startsWith('#')
-              ? `background-color: ${icon};`
-              : `background-image: url(${icon});`;
+    ? `background-color: ${icon};`
+    : `background-image: url(${icon});`
 
-  async function updateThumbnail(name) {
-    let data = await sendCommand('TakeSourceScreenshot', {
+  async function updateThumbnail (name) {
+    const data = await sendCommand('TakeSourceScreenshot', {
       sourceName: name,
       embedPictureFormat: 'jpg',
       width: 192,
-      height: 108,
-    });
-    img = data.img;
+      height: 108
+    })
+    img = data.img
   }
 </script>
 
 <button
-  class:title={buttonStyle == 'text'}
+  class:title={buttonStyle === 'text'}
   class:program={isProgram}
   class:preview={isPreview}
-  class:with-icon={buttonStyle == 'icon'}
+  class:with-icon={buttonStyle === 'icon'}
   on:click={() => dispatch('click')}
-  style={buttonStyle == 'icon' ? style : ''}
+  style={buttonStyle === 'icon' ? style : ''}
   title={name}
   >
   {#if img}<img src={img} alt={name} style="display:block" />{/if}
-  {#if buttonStyle != 'icon'}{name}{/if}
+  {#if buttonStyle !== 'icon'}{name}{/if}
 </button>
 
 <style>

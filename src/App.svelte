@@ -1,212 +1,211 @@
 <script>
-  const OBS_WEBSOCKET_LATEST_VERSION = '5.0.1'; // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
+  /* eslint-env browser */
+  const OBS_WEBSOCKET_LATEST_VERSION = '5.0.1' // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
-  import { onMount } from 'svelte';
-  import { mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline, mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause, mdiConnection } from '@mdi/js';
-  import Icon from 'mdi-svelte';
-  import compareVersions from 'compare-versions';
+  import { onMount } from 'svelte'
+  import { mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline, mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause, mdiConnection } from '@mdi/js'
+  import Icon from 'mdi-svelte'
+  import compareVersions from 'compare-versions'
 
-  import './style.scss';
-  import { obs, sendCommand } from './obs.js';
-  import ProgramPreview from './ProgramPreview.svelte';
-  import SceneSwitcher from './SceneSwitcher.svelte';
-  import SourceSwitcher from './SourceSwitcher.svelte';
-  import ProfileSelect from './ProfileSelect.svelte';
-  import SceneCollectionSelect from './SceneCollectionSelect.svelte';
+  import './style.scss'
+  import { obs, sendCommand } from './obs.js'
+  import ProgramPreview from './ProgramPreview.svelte'
+  import SceneSwitcher from './SceneSwitcher.svelte'
+  import SourceSwitcher from './SourceSwitcher.svelte'
+  import ProfileSelect from './ProfileSelect.svelte'
+  import SceneCollectionSelect from './SceneCollectionSelect.svelte'
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js');
+      navigator.serviceWorker.register('/service-worker.js')
     }
 
     // Request screen wakelock
     if ('wakeLock' in navigator) {
       try {
-        wakeLock = await navigator.wakeLock.request('screen');
-          // Re-request when coming back
-          document.addEventListener('visibilitychange', async () => {
-            if (document.visibilityState === 'visible') {
-              wakeLock = await navigator.wakeLock.request('screen');
-            }
-          });
-      }
-      catch(e) { }
+        await navigator.wakeLock.request('screen')
+        // Re-request when coming back
+        document.addEventListener('visibilitychange', async () => {
+          if (document.visibilityState === 'visible') {
+            await navigator.wakeLock.request('screen')
+          }
+        })
+      } catch (e) { }
     }
 
     // Toggle the navigation hamburger menu on mobile
-    const navbar = document.querySelector('.navbar-burger');
+    const navbar = document.querySelector('.navbar-burger')
     navbar.addEventListener('click', () => {
-      navbar.classList.toggle('is-active');
-      document.getElementById(navbar.dataset.target).classList.toggle('is-active');
-    });
+      navbar.classList.toggle('is-active')
+      document.getElementById(navbar.dataset.target).classList.toggle('is-active')
+    })
 
     // Listen for fullscreen changes
     document.addEventListener('fullscreenchange', () => {
-      isFullScreen = document.fullscreenElement;
-    });
+      isFullScreen = document.fullscreenElement
+    })
 
     document.addEventListener('webkitfullscreenchange', () => {
-      isFullScreen = document.webkitFullscreenElement;
-    });
+      isFullScreen = document.webkitFullscreenElement
+    })
 
     document.addEventListener('msfullscreenchange', () => {
-      isFullScreen = document.msFullscreenElement;
-    });
+      isFullScreen = document.msFullscreenElement
+    })
 
     if (document.location.hash !== '') {
       // Read address from hash
-      address = document.location.hash.slice(1);
-      await connect();
+      address = document.location.hash.slice(1)
+      await connect()
     }
-  });
+  })
 
   // State
-  let connected,
-    heartbeat = {},
-    heartbeatInterval,
-    isFullScreen,
-    isStudioMode,
-    isSceneOnTop,
-    isIconMode = window.localStorage.getItem('isIconMode') || false,
-    editable = false,
-    wakeLock = false,
-    address,
-    password,
-    scenes = [],
-    errorMessage = '';
+  let connected
+  let heartbeat = {}
+  let heartbeatInterval
+  let isFullScreen
+  let isStudioMode
+  let isSceneOnTop
+  let isIconMode = window.localStorage.getItem('isIconMode') || false
+  let editable = false
+  let address
+  let password
+  let scenes = []
+  let errorMessage = ''
 
-  $: isIconMode 
-      ? window.localStorage.setItem('isIconMode', "true")
-      : window.localStorage.removeItem('isIconMode');
-  
-  function formatTime(secs) {
-    secs = Math.round(secs / 1000);
-    let hours = Math.floor(secs / 3600);
-    secs -= hours * 3600;
-    let mins = Math.floor(secs / 60);
-    secs -= mins * 60;
+  $: isIconMode
+    ? window.localStorage.setItem('isIconMode', 'true')
+    : window.localStorage.removeItem('isIconMode')
+
+  function formatTime (secs) {
+    secs = Math.round(secs / 1000)
+    const hours = Math.floor(secs / 3600)
+    secs -= hours * 3600
+    const mins = Math.floor(secs / 60)
+    secs -= mins * 60
     return (hours > 0)
-      ? `${hours}:${mins<10?'0':''}${mins}:${secs<10?'0':''}${secs}`
-      : `${mins<10?'0':''}${mins}:${secs<10?'0':''}${secs}`;
+      ? `${hours}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`
+      : `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`
   }
 
-  function toggleFullScreen() {
+  function toggleFullScreen () {
     if (isFullScreen) {
       if (document.exitFullscreen) {
-        document.exitFullscreen();
+        document.exitFullscreen()
       } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
+        document.webkitExitFullscreen()
       } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
+        document.msExitFullscreen()
       }
     } else {
       if (document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen();
+        document.documentElement.requestFullscreen()
       } else if (document.documentElement.webkitRequestFullscreen) {
-        document.documentElement.webkitRequestFullscreen();
+        document.documentElement.webkitRequestFullscreen()
       } else if (document.documentElement.msRequestFullscreen) {
-        document.documentElement.msRequestFullscreen();
+        document.documentElement.msRequestFullscreen()
       }
     }
   }
 
-  async function toggleStudioMode() {
-    await sendCommand('SetStudioModeEnabled', {studioModeEnabled: !isStudioMode});
+  async function toggleStudioMode () {
+    await sendCommand('SetStudioModeEnabled', { studioModeEnabled: !isStudioMode })
   }
 
-  async function switchSceneView() {
-    isSceneOnTop = !isSceneOnTop;
+  async function switchSceneView () {
+    isSceneOnTop = !isSceneOnTop
   }
 
-  async function startStream() {
-    await sendCommand('StartStream');
+  async function startStream () {
+    await sendCommand('StartStream')
   }
 
-  async function stopStream() {
-    await sendCommand('StopStream');
+  async function stopStream () {
+    await sendCommand('StopStream')
   }
 
-  async function startRecording() {
-    await sendCommand('StartRecord');
+  async function startRecording () {
+    await sendCommand('StartRecord')
   }
 
-  async function stopRecording() {
-    await sendCommand('StopRecord');
+  async function stopRecording () {
+    await sendCommand('StopRecord')
   }
 
-  async function pauseRecording(){
-    await sendCommand('PauseRecord');
+  async function pauseRecording () {
+    await sendCommand('PauseRecord')
   }
 
-  async function resumeRecording(){
-    await sendCommand('ResumeRecord');
+  async function resumeRecording () {
+    await sendCommand('ResumeRecord')
   }
 
-  async function connect() {
-    address = address || 'ws://localhost:4455';
+  async function connect () {
+    address = address || 'ws://localhost:4455'
     if (address.indexOf('://') === -1) {
-      const secure = location.protocol === 'https:' || address.endsWith(':443');
-      address = secure ? 'wss://' : 'ws://' + address;
+      const secure = location.protocol === 'https:' || address.endsWith(':443')
+      address = secure ? 'wss://' : 'ws://' + address
     }
-    console.log('Connecting to:', address,  '- using password:', password);
-    await disconnect();
+    console.log('Connecting to:', address, '- using password:', password)
+    await disconnect()
     try {
-      const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(address, password);
-      console.log(`Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`);
+      const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(address, password)
+      console.log(`Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`)
     } catch (e) {
-      console.log(e);
-      errorMessage = e.message;
+      console.log(e)
+      errorMessage = e.message
     }
   }
 
-  async function disconnect() {
-    await obs.disconnect();
-    clearInterval(heartbeatInterval);
-    connected = false;
-    errorMessage = 'Disconnected';
+  async function disconnect () {
+    await obs.disconnect()
+    clearInterval(heartbeatInterval)
+    connected = false
+    errorMessage = 'Disconnected'
   }
 
   // OBS events
   obs.on('ConnectionClosed', () => {
-    connected = false;
-    window.history.pushState('', document.title, window.location.pathname + window.location.search); // Remove the hash
-    console.log('Connection closed');
-  });
+    connected = false
+    window.history.pushState('', document.title, window.location.pathname + window.location.search) // Remove the hash
+    console.log('Connection closed')
+  })
 
   obs.on('Identified', async () => {
-    console.log('Connected');
-    connected = true;
-    document.location.hash = address; // For easy bookmarking
-    const version = (await sendCommand('GetVersion')).obsWebSocketVersion || '';
-    console.log('OBS-websocket version:', version);
-    if(compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) > 0) {
-      alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.');
+    console.log('Connected')
+    connected = true
+    document.location.hash = address // For easy bookmarking
+    const version = (await sendCommand('GetVersion')).obsWebSocketVersion || ''
+    console.log('OBS-websocket version:', version)
+    if (compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) > 0) {
+      alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.')
     }
     heartbeatInterval = setInterval(async () => {
-      const stats = await sendCommand('GetStats');
-      const streaming = await sendCommand('GetStreamStatus');
-      const recording = await sendCommand('GetRecordStatus');
-      heartbeat = { stats, streaming, recording };
+      const stats = await sendCommand('GetStats')
+      const streaming = await sendCommand('GetStreamStatus')
+      const recording = await sendCommand('GetRecordStatus')
+      heartbeat = { stats, streaming, recording }
       // console.log(heartbeat);
-    }, 1000); // Heartbeat
-    isStudioMode = (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false;
-  });
+    }, 1000) // Heartbeat
+    isStudioMode = (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false
+  })
 
   obs.on('ConnectionError', async () => {
-    errorMessage = 'Please enter your password:';
-    document.getElementById('password').focus();
+    errorMessage = 'Please enter your password:'
+    document.getElementById('password').focus()
     if (!password) {
-      connected = false;
+      connected = false
     } else {
-      await connect();
+      await connect()
     }
-  });
+  })
 
   obs.on('StudioModeStateChanged', async (data) => {
-    console.log('StudioModeStateChanged', data.studioModeEnabled);
-    isStudioMode = data && data.studioModeEnabled;
-  });
+    console.log('StudioModeStateChanged', data.studioModeEnabled)
+    isStudioMode = data && data.studioModeEnabled
+  })
 </script>
 
 <svelte:head>
@@ -272,12 +271,12 @@
             <button class:is-light={!isSceneOnTop} class="button is-link" on:click={switchSceneView} title="Show Scene on Top">
               <span class="icon"><Icon path={mdiArrowSplitHorizontal} /></span>
             </button>
-            <button class:is-light={!editable} class="button is-link" title="Edit Scenes" on:click={()=>(editable=!editable)}>
+            <button class:is-light={!editable} class="button is-link" title="Edit Scenes" on:click={() => (editable = !editable)}>
               <span class="icon">
                 <Icon path={editable ? mdiImageEditOutline : mdiImageEdit} />
               </span>
             </button>
-            <button class:is-light={!isIconMode} class="button is-link" title="Show Scenes as Icons" on:click={()=>(isIconMode=!isIconMode)}>
+            <button class:is-light={!isIconMode} class="button is-link" title="Show Scenes as Icons" on:click={() => (isIconMode = !isIconMode)}>
               <span class="icon">
                 <Icon path={isIconMode ? mdiSquareRoundedBadgeOutline : mdiSquareRoundedBadge} />
               </span>
@@ -308,7 +307,7 @@
       {#if isSceneOnTop}
         <ProgramPreview />
       {/if}
-      <SceneSwitcher bind:scenes={scenes} buttonStyle={isIconMode ? "icon" : "text"} editable={editable} />
+      <SceneSwitcher bind:scenes={scenes} buttonStyle={isIconMode ? 'icon' : 'text'} editable={editable} />
       {#if !isSceneOnTop}
         <ProgramPreview />
       {/if}

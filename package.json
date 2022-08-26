@@ -4,7 +4,8 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "start": "sirv public --host"
+    "start": "sirv public --host",
+    "lint": "npx standard --fix && npx standard --parser svelte-eslint-parser --plugin svelte '**/*.svelte' --fix"
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^4.0.2",
@@ -15,6 +16,7 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "bulma": "^0.9.1",
     "compare-versions": "^4.1.3",
+    "eslint-plugin-svelte": "^2.7.0",
     "mdi-svelte": "^1.1.2",
     "obs-websocket-js": "^5.0.0",
     "postcss": "^8.4.14",
@@ -25,6 +27,7 @@
     "rollup-plugin-svelte": "^7.0.0",
     "rollup-plugin-terser": "^7.0.2",
     "sass": "^1.29.0",
+    "standard": "^17.0.0",
     "svelte": "^3.29.7"
   },
   "dependencies": {
