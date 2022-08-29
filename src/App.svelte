@@ -6,7 +6,7 @@
   import { onMount } from 'svelte'
   import { mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline, mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause, mdiConnection } from '@mdi/js'
   import Icon from 'mdi-svelte'
-  import compareVersions from 'compare-versions'
+  import { compareVersions } from 'compare-versions'
 
   import './style.scss'
   import { obs, sendCommand } from './obs.js'
