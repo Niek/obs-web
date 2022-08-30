@@ -59,6 +59,9 @@
       address = document.location.hash.slice(1)
       await connect()
     }
+
+    // Export the sendCommand() function to the window object
+    window.sendCommand = sendCommand
   })
 
   // State
