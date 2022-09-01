@@ -77,7 +77,7 @@
     })
     if (data && data.imageData && program) {
       program.src = data.imageData
-      program.className = ''
+       program.className = ''
     }
 
     if (isStudioMode) {

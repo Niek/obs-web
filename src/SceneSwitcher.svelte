@@ -19,14 +19,10 @@
 
   onMount(async function () {
     let data = await sendCommand('GetSceneList')
-    programScene = data.currentProgramSceneName || ''
-    scenes = data.scenes
     console.log('GetSceneList', data)
-    data = await sendCommand('GetStudioModeEnabled')
-    if (data && data.studioModeEnabled) {
-      isStudioMode = true
-      previewScene = data.currentPreviewSceneName || ''
-    }
+    programScene = data.currentProgramSceneName || ''
+    previewScene = data.currentPreviewSceneName
+    scenes = data.scenes
   })
 
   obs.on('StudioModeStateChanged', async (data) => {
@@ -40,29 +36,37 @@
     scenes = data.scenes
   })
 
-  obs.on('SourceRenamed', async (data) => {
-    if (data.sourceType === 'scene') {
-      console.log('SourceRenamed', data.previousName, data.newName)
-      // Rename in scenes
-      for (let i = 0; i < scenes.length; i++) {
-        if (scenes[i] === data.previousName) {
-          scenes[i] = data.newName
-          break
-        }
+  obs.on('SceneCreated', async (data) => {
+    console.log('SceneCreated', data)
+  })
+
+  obs.on('SceneRemoved', async (data) => {
+    console.log('SceneRemoved', data)
+    for (let i=0; i < scenes.length; i++) {
+      if (scenes[i].sceneName == data.sceneName) {
+        delete scenes[i];
       }
-      // Rename in sceneIcons
-      sceneIcons[data.newName] = sceneIcons[data.previousName]
     }
   })
 
-  obs.on('SwitchScenes', (data) => {
-    console.log('SwitchScenes', data['scene-name'], data.sources.length)
-    programScene = data || {}
-    programScene = programScene['scene-name']
+  obs.on('SceneNameChanged', async (data) => {
+    console.log('SceneNameChanged', data)
+    for (let i=0; i < scenes.length; i++) {
+      if (scenes[i].sceneName == data.oldSceneName) {
+        scenes[i].sceneName = data.sceneName;
+      }
+    }
+    // Rename in sceneIcons
+    sceneIcons[data.sceneName] = sceneIcons[data.oldSceneName]
+  })
+
+  obs.on('CurrentProgramSceneChanged', (data) => {
+    console.log('CurrentProgramSceneChanged', data)
+    programScene = data.sceneName || '';
   })
 
   obs.on('CurrentPreviewSceneChanged', async (data) => {
-    console.log('CurrentPreviewSceneChanged', data.sceneName)
+    console.log('CurrentPreviewSceneChanged', data)
     previewScene = data.sceneName
   })
 
@@ -77,7 +81,7 @@
   }
 
   function onNameChange (event) {
-    sendCommand('SetSourceName', { sourceName: event.target.title, newName: event.target.value })
+    sendCommand('SetSceneName', { sceneName: event.target.title, newSceneName: event.target.value })
   }
   function onIconChange (event) {
     sceneIcons[event.target.title] = event.target.value

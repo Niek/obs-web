@@ -4,26 +4,14 @@
   export let icon = '#ffffff'
   export let isProgram = false
   export let isPreview = false
-  let img = ''
+  export let img = ''
 
-  import { sendCommand } from './obs.js'
   import { createEventDispatcher } from 'svelte'
   const dispatch = createEventDispatcher()
 
-  $: if (buttonStyle === 'screenshot') { updateThumbnail(name) }
   $: style = icon.startsWith('#')
     ? `background-color: ${icon};`
     : `background-image: url(${icon});`
-
-  async function updateThumbnail (name) {
-    const data = await sendCommand('TakeSourceScreenshot', {
-      sourceName: name,
-      embedPictureFormat: 'jpg',
-      width: 192,
-      height: 108
-    })
-    img = data.img
-  }
 </script>
 
 <button
@@ -35,7 +23,7 @@
   style={buttonStyle === 'icon' ? style : ''}
   title={name}
   >
-  {#if img}<img src={img} alt={name} style="display:block" />{/if}
+  {#if img}<img src={img} alt={name} class="thumbnail" />{/if}
   {#if buttonStyle !== 'icon'}{name}{/if}
 </button>
 
@@ -81,5 +69,11 @@
     height: 12px;
     border-radius: 50%;
     box-shadow: 1px 1px 5px gray;
+  }
+  .thumbnail {
+    display: block;
+    max-width: 100%;
+    max-height: calc(100% - 1rem);
+    margin: 0 auto;
   }
 </style>

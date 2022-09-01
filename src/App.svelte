@@ -4,7 +4,16 @@
 
   // Imports
   import { onMount } from 'svelte'
-  import { mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline, mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause, mdiConnection } from '@mdi/js'
+  import {
+    mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline,
+    mdiImageEdit, mdiImageEditOutline,
+    mdiFullscreen, mdiFullscreenExit,
+    mdiBorderVertical, mdiArrowSplitHorizontal,
+    mdiAccessPoint, mdiAccessPointOff,
+    mdiRecord, mdiStop, mdiPause, mdiPlayPause,
+    mdiConnection,
+    mdiMotionPlayOutline, mdiMotionPlay,
+  } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
@@ -72,6 +81,7 @@
   let isStudioMode
   let isSceneOnTop
   let isIconMode = window.localStorage.getItem('isIconMode') || false
+  let isReplaying
   let editable = false
   let address
   let password
@@ -115,6 +125,10 @@
 
   async function toggleStudioMode () {
     await sendCommand('SetStudioModeEnabled', { studioModeEnabled: !isStudioMode })
+  }
+
+  async function toggleReplay () {
+    await sendCommand('ToggleReplayBuffer', { outputActive: !isReplaying })
   }
 
   async function switchSceneView () {
@@ -209,6 +223,11 @@
     console.log('StudioModeStateChanged', data.studioModeEnabled)
     isStudioMode = data && data.studioModeEnabled
   })
+
+  obs.on('ReplayBufferStateChanged', async (data) => {
+    console.log('ReplayBufferStateChanged', data)
+    isReplaying = data && data.outputActive
+  })
 </script>
 
 <svelte:head>
@@ -282,6 +301,11 @@
             <button class:is-light={!isIconMode} class="button is-link" title="Show Scenes as Icons" on:click={() => (isIconMode = !isIconMode)}>
               <span class="icon">
                 <Icon path={isIconMode ? mdiSquareRoundedBadgeOutline : mdiSquareRoundedBadge} />
+              </span>
+            </button>
+            <button class:is-light={!isReplaying} class="button is-link" title="Toggle Replay Buffer" on:click={toggleReplay}>
+              <span class="icon">
+                <Icon path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay} />
               </span>
             </button>
             <ProfileSelect />
