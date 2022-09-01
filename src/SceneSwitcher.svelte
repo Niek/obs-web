@@ -23,6 +23,11 @@
     programScene = data.currentProgramSceneName || ''
     previewScene = data.currentPreviewSceneName
     scenes = data.scenes
+    data = await sendCommand('GetStudioModeEnabled')
+    if (data && data.studioModeEnabled) {
+      isStudioMode = true
+      previewScene = data.currentPreviewSceneName || ''
+    }
   })
 
   obs.on('StudioModeStateChanged', async (data) => {

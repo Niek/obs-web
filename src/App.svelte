@@ -86,6 +86,7 @@
   let address
   let password
   let scenes = []
+  let replayError = ''
   let errorMessage = ''
 
   $: isIconMode
@@ -128,7 +129,13 @@
   }
 
   async function toggleReplay () {
-    await sendCommand('ToggleReplayBuffer', { outputActive: !isReplaying })
+    const data = await sendCommand('ToggleReplayBuffer')
+    console.debug('ToggleReplayBuffer', data.outputActive)
+    if (data.outputActive === undefined) {
+      replayError = "Replay buffer is not enabled."
+      setTimeout(function(){replayError=''}, 5000)
+    }
+    else isReplaying = data.outputActive
   }
 
   async function switchSceneView () {
@@ -303,10 +310,11 @@
                 <Icon path={isIconMode ? mdiSquareRoundedBadgeOutline : mdiSquareRoundedBadge} />
               </span>
             </button>
-            <button class:is-light={!isReplaying} class="button is-link" title="Toggle Replay Buffer" on:click={toggleReplay}>
+            <button class:is-light={!isReplaying} class:is-danger={replayError} class="button is-link" title="Toggle Replay Buffer" on:click={toggleReplay}>
               <span class="icon">
                 <Icon path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay} />
               </span>
+              {#if replayError}<span>{replayError}</span>{/if}
             </button>
             <ProfileSelect />
             <SceneCollectionSelect />
