@@ -13,6 +13,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -24,12 +27,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push
-        id: docker_build
         uses: docker/build-push-action@v3
         with:
           push: true # push to registry
           pull: true # always fetch the latest base images
+          platforms: linux/amd64,linux/arm64 # build for both amd64 and arm64
           tags: ghcr.io/niek/obs-web:latest
-
-      - name: Image digest
-        run: echo ${{ steps.docker_build.outputs.digest }}
