@@ -4,7 +4,7 @@
   let items = []
   const itemsIndex = {}
   let currentItemId = ''
-  let screenshottedIds = new Set()
+  const screenshottedIds = new Set()
 
   import { onMount } from 'svelte'
   import { obs, sendCommand } from './obs.js'
@@ -18,7 +18,7 @@
     const data = await sendCommand('GetSceneItemList', { sceneName: name })
     items = data.sceneItems || items
     for (let i = 0; i < items.length; i++) {
-      const item = items[i];
+      const item = items[i]
       itemsIndex[item.sceneItemId] = i
       if (item.sceneItemEnabled) {
         currentItemId = item.sceneItemId
@@ -86,11 +86,11 @@
 
   async function getItemScreenshot (item) {
     if (item.img) return item.img
-    let data = null;
-    let retry = item.sceneItemEnabled ? 3 : 1;
+    let data = null
+    let retry = item.sceneItemEnabled ? 3 : 1
     while (retry--) {
       // Random sleep to avoid burst of thumbnail rendering
-      await new Promise(r => setTimeout(r, Math.random()*500+100));
+      await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 100))
       data = await sendCommand('GetSourceScreenshot', {
         sourceName: item.sourceName,
         imageFormat: 'jpg',
