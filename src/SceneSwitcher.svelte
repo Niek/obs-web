@@ -18,7 +18,7 @@
   $: window.localStorage.setItem('sceneIcons', JSON.stringify(sceneIcons))
 
   onMount(async function () {
-    let data = await sendCommand('GetSceneList')
+    const data = await sendCommand('GetSceneList')
     console.log('GetSceneList', data)
     programScene = data.currentProgramSceneName || ''
     previewScene = data.currentPreviewSceneName
@@ -47,18 +47,18 @@
 
   obs.on('SceneRemoved', async (data) => {
     console.log('SceneRemoved', data)
-    for (let i=0; i < scenes.length; i++) {
-      if (scenes[i].sceneName == data.sceneName) {
-        delete scenes[i];
+    for (let i = 0; i < scenes.length; i++) {
+      if (scenes[i].sceneName === data.sceneName) {
+        delete scenes[i]
       }
     }
   })
 
   obs.on('SceneNameChanged', async (data) => {
     console.log('SceneNameChanged', data)
-    for (let i=0; i < scenes.length; i++) {
-      if (scenes[i].sceneName == data.oldSceneName) {
-        scenes[i].sceneName = data.sceneName;
+    for (let i = 0; i < scenes.length; i++) {
+      if (scenes[i].sceneName === data.oldSceneName) {
+        scenes[i].sceneName = data.sceneName
       }
     }
     // Rename in sceneIcons
@@ -67,7 +67,7 @@
 
   obs.on('CurrentProgramSceneChanged', (data) => {
     console.log('CurrentProgramSceneChanged', data)
-    programScene = data.sceneName || '';
+    programScene = data.sceneName || ''
   })
 
   obs.on('CurrentPreviewSceneChanged', async (data) => {

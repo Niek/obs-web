@@ -12,7 +12,7 @@
     mdiAccessPoint, mdiAccessPointOff,
     mdiRecord, mdiStop, mdiPause, mdiPlayPause,
     mdiConnection,
-    mdiMotionPlayOutline, mdiMotionPlay,
+    mdiMotionPlayOutline, mdiMotionPlay
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
