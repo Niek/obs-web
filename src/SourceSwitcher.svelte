@@ -3,7 +3,8 @@
   export let name = 'Backgrounds (hidden)'
   let items = []
   const itemsIndex = {}
-  let currentItemName = ''
+  let currentItemId = ''
+  const screenshottedIds = new Set()
 
   import { onMount } from 'svelte'
   import { obs, sendCommand } from './obs.js'
@@ -16,59 +17,102 @@
   async function refreshItems () {
     const data = await sendCommand('GetSceneItemList', { sceneName: name })
     items = data.sceneItems || items
-    await fillItems()
-  }
-
-  async function fillItems () {
     for (let i = 0; i < items.length; i++) {
-      const data = await sendCommand('GetSceneItemProperties', { 'scene-name': name, item: items[i].sourceName })
-      items[i] = data
-      itemsIndex[data.name] = i
-      if (data.visible) {
-        currentItemName = data.name
+      const item = items[i]
+      itemsIndex[item.sceneItemId] = i
+      if (item.sceneItemEnabled) {
+        currentItemId = item.sceneItemId
       }
+    }
+    for (let i = 0; i < items.length; i++) {
+      items[i].img = await getItemScreenshot(items[i])
     }
   }
 
-  obs.on('SceneItemVisibilityChanged', async (data) => {
-    if (data['scene-name'] === name) {
-      items[itemsIndex[data['item-name']]].visible = data['item-visible']
+  obs.on('SceneItemEnableStateChanged', async (data) => {
+    if (data.sceneName === name) {
+      const i = itemsIndex[data.sceneItemId]
+      items[i].sceneItemEnabled = data.sceneItemEnabled
+      if (items[i].sceneItemEnabled && !items[i].img) {
+        items[i].img = await getItemScreenshot(items[i])
+        if (screenshottedIds.has(items[i].sceneItemId)) {
+          items[i].img = await getItemScreenshot(items[i])
+          await sendCommand('SetSceneItemEnabled', {
+            sceneName: name,
+            sceneItemId: items[i].sceneItemId,
+            sceneItemEnabled: false
+          })
+          screenshottedIds.delete(items[i].sceneItemId)
+        }
+      }
     }
   })
 
-  obs.on('SourceOrderChanged', async (data) => {
-    if (data['scene-name'] === name) {
+  obs.on('SceneItemListReindexed', async (data) => {
+    if (data.sceneName === name) {
       await refreshItems()
     }
   })
 
-  obs.on('SceneItemAdded', async (data) => {
-    if (data['scene-name'] === name) {
+  obs.on('SceneItemCreated', async (data) => {
+    if (data.sceneName === name) {
       await refreshItems()
     }
   })
 
   obs.on('SceneItemRemoved', async (data) => {
-    if (data['scene-name'] === name) {
+    if (data.sceneName === name) {
       await refreshItems()
     }
   })
 
-  function backgroundClicker (itemName) {
+  function backgroundClicker (itemId) {
     return async function () {
-      await sendCommand('SetSceneItemProperties', {
-        'scene-name': name,
-        item: itemName,
-        visible: true
+      await sendCommand('SetSceneItemEnabled', {
+        sceneName: name,
+        sceneItemId: itemId,
+        sceneItemEnabled: true
       })
-      if (currentItemName !== itemName) {
-        await sendCommand('SetSceneItemProperties', {
-          'scene-name': name,
-          item: currentItemName,
-          visible: false
+      if (currentItemId !== itemId) {
+        await sendCommand('SetSceneItemEnabled', {
+          sceneName: name,
+          sceneItemId: currentItemId,
+          sceneItemEnabled: false
         })
       }
-      currentItemName = itemName
+      currentItemId = itemId
+    }
+  }
+
+  async function getItemScreenshot (item) {
+    if (item.img) return item.img
+    let data = null
+    let retry = item.sceneItemEnabled ? 3 : 1
+    while (retry--) {
+      // Random sleep to avoid burst of thumbnail rendering
+      await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 100))
+      data = await sendCommand('GetSourceScreenshot', {
+        sourceName: item.sourceName,
+        imageFormat: 'jpg',
+        width: 192,
+        height: 108
+      })
+      if (data && data.imageData) {
+        return data.imageData
+      }
+    }
+  }
+
+  async function loadMissingScreenshots () {
+    for (let i = 0; i < items.length; i++) {
+      if (!items[i].img) {
+        await sendCommand('SetSceneItemEnabled', {
+          sceneName: name,
+          sceneItemId: items[i].sceneItemId,
+          sceneItemEnabled: true
+        })
+        screenshottedIds.add(items[i].sceneItemId)
+      }
     }
   }
 </script>
@@ -76,14 +120,16 @@
 <ol>
   {#each items as item}
   <li>
-    <SourceButton name={item.name}
-      on:click={backgroundClicker(item.name)}
-      isProgram={item.visible}
+    <SourceButton name={item.sourceName}
+      on:click={backgroundClicker(item.sceneItemId)}
+      isProgram={item.sceneItemEnabled}
+      img={item.img}
       buttonStyle={buttonStyle}
     />
   </li>
   {/each}
 </ol>
+<button class="button" on:click={loadMissingScreenshots}>Load missing thumbnails</button>
 
 <style>
   ol {

@@ -4,7 +4,16 @@
 
   // Imports
   import { onMount } from 'svelte'
-  import { mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline, mdiImageEdit, mdiImageEditOutline, mdiFullscreen, mdiFullscreenExit, mdiBorderVertical, mdiArrowSplitHorizontal, mdiAccessPoint, mdiAccessPointOff, mdiRecord, mdiStop, mdiPause, mdiPlayPause, mdiConnection } from '@mdi/js'
+  import {
+    mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline,
+    mdiImageEdit, mdiImageEditOutline,
+    mdiFullscreen, mdiFullscreenExit,
+    mdiBorderVertical, mdiArrowSplitHorizontal,
+    mdiAccessPoint, mdiAccessPointOff,
+    mdiRecord, mdiStop, mdiPause, mdiPlayPause,
+    mdiConnection,
+    mdiMotionPlayOutline, mdiMotionPlay
+  } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
@@ -72,10 +81,12 @@
   let isStudioMode
   let isSceneOnTop
   let isIconMode = window.localStorage.getItem('isIconMode') || false
+  let isReplaying
   let editable = false
   let address
   let password
   let scenes = []
+  let replayError = ''
   let errorMessage = ''
 
   $: isIconMode
@@ -115,6 +126,15 @@
 
   async function toggleStudioMode () {
     await sendCommand('SetStudioModeEnabled', { studioModeEnabled: !isStudioMode })
+  }
+
+  async function toggleReplay () {
+    const data = await sendCommand('ToggleReplayBuffer')
+    console.debug('ToggleReplayBuffer', data.outputActive)
+    if (data.outputActive === undefined) {
+      replayError = 'Replay buffer is not enabled.'
+      setTimeout(function () { replayError = '' }, 5000)
+    } else isReplaying = data.outputActive
   }
 
   async function switchSceneView () {
@@ -209,6 +229,11 @@
     console.log('StudioModeStateChanged', data.studioModeEnabled)
     isStudioMode = data && data.studioModeEnabled
   })
+
+  obs.on('ReplayBufferStateChanged', async (data) => {
+    console.log('ReplayBufferStateChanged', data)
+    isReplaying = data && data.outputActive
+  })
 </script>
 
 <svelte:head>
@@ -283,6 +308,12 @@
               <span class="icon">
                 <Icon path={isIconMode ? mdiSquareRoundedBadgeOutline : mdiSquareRoundedBadge} />
               </span>
+            </button>
+            <button class:is-light={!isReplaying} class:is-danger={replayError} class="button is-link" title="Toggle Replay Buffer" on:click={toggleReplay}>
+              <span class="icon">
+                <Icon path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay} />
+              </span>
+              {#if replayError}<span>{replayError}</span>{/if}
             </button>
             <ProfileSelect />
             <SceneCollectionSelect />
