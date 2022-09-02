@@ -132,10 +132,9 @@
     const data = await sendCommand('ToggleReplayBuffer')
     console.debug('ToggleReplayBuffer', data.outputActive)
     if (data.outputActive === undefined) {
-      replayError = "Replay buffer is not enabled."
-      setTimeout(function(){replayError=''}, 5000)
-    }
-    else isReplaying = data.outputActive
+      replayError = 'Replay buffer is not enabled.'
+      setTimeout(function () { replayError = '' }, 5000)
+    } else isReplaying = data.outputActive
   }
 
   async function switchSceneView () {
