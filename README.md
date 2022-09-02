@@ -18,25 +18,30 @@
 
 #### Features:
 
-- No installation needed, works in any modern browser (desktop + mobile)
-- Support for remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
+- No installation or extra software needed, works in any modern browser (desktop + mobile)
+- Support for local and remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
 - Easily switch scenes and start/stop streaming and recording
 - Support for Studio Mode (preview and program scenes)
-- Preview of output, updating 1 fps
-- Fullscreen button and wakelock support
+- Live view of output, updating 1 fps
+- Fullscreen button and wakelock support (keeps screen on)
 - Easy bookmarking/deeplink by specifying host in URL
-- Hide scenes that have `(hidden)` in their name
-- Switch sources in scenes with `(switch)` in their name
-- Switch Profiles
-- Switch Scene Collections
+- Profile switching support
+- Scene Collections switching support
+- Custom transition support
+- Extra features:
+  - Hide scenes that have `(hidden)` in their name
+  - Switch sources in scenes with `(switch)` in their name
+
 
 ---
 
 #### Requirements:
 
-- [OBS](https://obsproject.com/)
-- [OBS-websocket](https://github.com/Palakis/obs-websocket/releases) plugin
-- A tunnel service if you want to control remotely, [see these instructions](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
+- [OBS](https://obsproject.com/) v28 or higher - this includes the latest version of the OBS-websocket plugin
+  - OBS v27 is also supported, by manually installing the [OBS-websocket v5](https://github.com/obsproject/obs-websocket/releases/latest) plugin
+  - For older OBS versions, use the [OBS-websocket v4](https://github.com/obsproject/obs-websocket/releases/tag/4.9.1-compat) plugin and [OBS-web v4](http://obs-web.niek.tv/v4/) (no longer maintained)
+- Enabling the OBS-websocket server in OBS under `Tools -> obs-websocket Settings -> Enable WebSocket Server`
+- Optionally: a tunnel service if you want to control OBS outside your local network, [see these instructions](https://github.com/obsproject/obs-websocket/blob/4.x-compat/SSL-TUNNELLING.md)
 
 ---
 
