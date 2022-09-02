@@ -24,13 +24,14 @@
 - Support for Studio Mode (preview and program scenes)
 - Live view of output, updating 1 fps
 - Fullscreen button and wakelock support (keeps screen on)
+- Replay Buffer button
 - Easy bookmarking/deeplink by specifying host in URL
 - Profile switching support
 - Scene Collections switching support
 - Custom transition support
 - Extra features:
   - Hide scenes that have `(hidden)` in their name
-  - Switch sources in scenes with `(switch)` in their name
+  - Switch sources in scenes with `(switch)` in their name visually by thumbnails
 
 
 ---
