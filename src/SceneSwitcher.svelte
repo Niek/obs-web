@@ -18,7 +18,7 @@
   $: window.localStorage.setItem('sceneIcons', JSON.stringify(sceneIcons))
 
   onMount(async function () {
-    const data = await sendCommand('GetSceneList')
+    let data = await sendCommand('GetSceneList')
     console.log('GetSceneList', data)
     programScene = data.currentProgramSceneName || ''
     previewScene = data.currentPreviewSceneName
