@@ -126,6 +126,15 @@
       "contributions": [
         "ideas"
       ]
+    },
+    {
+      "login": "tt2468",
+      "name": "tt2468",
+      "avatar_url": "https://avatars.githubusercontent.com/u/28720189?v=4",
+      "profile": "https://tt2468.net",
+      "contributions": [
+        "ideas"
+      ]
     }
   ],
   "contributorsPerLine": 7,
@@ -133,5 +142,6 @@
   "projectOwner": "Niek",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "skipCi": true
+  "skipCi": true,
+  "commitConvention": "angular"
 }
