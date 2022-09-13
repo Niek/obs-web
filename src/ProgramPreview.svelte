@@ -2,6 +2,8 @@
   import { onMount, onDestroy } from 'svelte'
   import { obs, sendCommand } from './obs.js'
 
+  export let imageFormat = 'jpg'
+
   let isStudioMode = false
   let programScene = ''
   let previewScene = ''
@@ -36,6 +38,7 @@
     clearInterval(screenshotInterval)
   })
 
+  // eslint-disable-next-line
   $: getScreenshot(), programScene, previewScene
 
   obs.on('StudioModeStateChanged', async (data) => {
@@ -71,7 +74,7 @@
     if (!programScene) return
     let data = await sendCommand('GetSourceScreenshot', {
       sourceName: programScene,
-      imageFormat: 'jpg',
+      imageFormat,
       imageWidth: 960,
       imageHeight: 540
     })
@@ -84,7 +87,7 @@
       if (previewScene !== programScene) {
         data = await sendCommand('GetSourceScreenshot', {
           sourceName: previewScene,
-          imageFormat: 'jpg',
+          imageFormat,
           imageWidth: 960,
           imageHeight: 540
         })

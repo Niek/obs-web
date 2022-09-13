@@ -88,6 +88,7 @@
   let scenes = []
   let replayError = ''
   let errorMessage = ''
+  let imageFormat = 'jpg'
 
   $: isIconMode
     ? window.localStorage.setItem('isIconMode', 'true')
@@ -200,10 +201,14 @@
     console.log('Connected')
     connected = true
     document.location.hash = address // For easy bookmarking
-    const version = (await sendCommand('GetVersion')).obsWebSocketVersion || ''
+    const data = await sendCommand('GetVersion')
+    const version = data.obsWebSocketVersion || ''
     console.log('OBS-websocket version:', version)
     if (compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) > 0) {
       alert('You are running an outdated OBS-websocket (version ' + version + '), please upgrade to the latest version for full compatibility.')
+    }
+    if (data.supportedImageFormats.includes('webp') && document.createElement('canvas').toDataURL('image/webp').indexOf('data:image/webp') === 0) {
+      imageFormat = 'webp'
     }
     heartbeatInterval = setInterval(async () => {
       const stats = await sendCommand('GetStats')
@@ -339,15 +344,15 @@
   <div class="container">
     {#if connected}
       {#if isSceneOnTop}
-        <ProgramPreview />
+        <ProgramPreview imageFormat={imageFormat} />
       {/if}
       <SceneSwitcher bind:scenes={scenes} buttonStyle={isIconMode ? 'icon' : 'text'} editable={editable} />
       {#if !isSceneOnTop}
-        <ProgramPreview />
+        <ProgramPreview imageFormat={imageFormat} />
       {/if}
       {#each scenes as scene}
         {#if scene.sceneName.indexOf('(switch)') > 0}
-        <SourceSwitcher name={scene.sceneName} buttonStyle="screenshot" />
+        <SourceSwitcher name={scene.sceneName} imageFormat={imageFormat} buttonStyle="screenshot" />
         {/if}
       {/each}
     {:else}

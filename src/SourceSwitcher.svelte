@@ -1,6 +1,7 @@
 <script>
   export let buttonStyle = 'screenshot'
   export let name = 'Backgrounds (hidden)'
+  export let imageFormat = 'jpg'
   let items = []
   const itemsIndex = {}
   let currentItemId = ''
@@ -93,7 +94,7 @@
       await new Promise((resolve) => setTimeout(resolve, Math.random() * 500 + 100))
       data = await sendCommand('GetSourceScreenshot', {
         sourceName: item.sourceName,
-        imageFormat: 'jpg',
+        imageFormat,
         width: 192,
         height: 108
       })
