@@ -49,7 +49,7 @@
 #### Build instructions:
 
 ```bash
-npm i
+npm ci
 npm run dev # or: npm run build
 ```
 
