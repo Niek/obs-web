@@ -11,7 +11,7 @@
     mdiBorderVertical, mdiArrowSplitHorizontal,
     mdiAccessPoint, mdiAccessPointOff,
     mdiRecord, mdiStop, mdiPause, mdiPlayPause,
-    mdiConnection,
+    mdiConnection, mdiCameraOff, mdiCamera,
     mdiMotionPlayOutline, mdiMotionPlay
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
@@ -158,6 +158,14 @@
     await sendCommand('StopRecord')
   }
 
+  async function startVirtualCam() {
+    await sendCommand('StartVirtualCam')
+  }
+
+  async function stopVirtualCam() {
+    await sendCommand('StopVirtualCam')
+  }
+
   async function pauseRecording () {
     await sendCommand('PauseRecord')
   }
@@ -214,7 +222,8 @@
       const stats = await sendCommand('GetStats')
       const streaming = await sendCommand('GetStreamStatus')
       const recording = await sendCommand('GetRecordStatus')
-      heartbeat = { stats, streaming, recording }
+      const virtualcam = await sendCommand('GetVirtualCamStatus')
+      heartbeat = { stats, streaming, recording, virtualcam }
       // console.log(heartbeat);
     }, 1000) // Heartbeat
     isStudioMode = (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false
@@ -296,6 +305,15 @@
             {:else}
               <button class="button is-danger is-light" on:click={startRecording} title="Start Recording">
                 <span class="icon"><Icon path={mdiRecord} /></span>
+              </button>
+            {/if}
+            {#if heartbeat && heartbeat.virtualcam && heartbeat.virtualcam.outputActive}
+              <button class="button is-danger" on:click={stopVirtualCam} title="Stop Virtual Webcam">
+                <span class='icon'><Icon path={mdiCameraOff} /></span>
+              </button>
+            {:else}
+              <button class="button is-danger is-light" on:click={startVirtualCam} title="Start Virtual Webcam">
+                <span class='icon'><Icon path={mdiCamera} /></span>
               </button>
             {/if}
             <button class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
