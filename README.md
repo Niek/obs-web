@@ -19,10 +19,11 @@
 #### Features:
 
 - No installation or extra software needed, works in any modern browser (desktop + mobile)
-- Support for local and remote control through [WSS tunnels](https://github.com/Palakis/obs-websocket/blob/4.x-current/SSL-TUNNELLING.md)
+- Support for local network and internet control through [WSS tunnels](https://github.com/obsproject/obs-websocket/blob/4.x-compat/SSL-TUNNELLING.md)
 - Easily switch scenes and start/stop streaming and recording
 - Support for Studio Mode (preview and program scenes)
-- Live view of output, updating 1 fps
+- Support for Virtual Camera
+- Live view of preview & output, updating 1 fps
 - Fullscreen button and wakelock support (keeps screen on)
 - Replay Buffer button
 - Easy bookmarking/deeplink by specifying host in URL
