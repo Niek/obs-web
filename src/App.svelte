@@ -159,11 +159,11 @@
     await sendCommand('StopRecord')
   }
 
-  async function startVirtualCam() {
+  async function startVirtualCam () {
     await sendCommand('StartVirtualCam')
   }
 
-  async function stopVirtualCam() {
+  async function stopVirtualCam () {
     await sendCommand('StopVirtualCam')
   }
 
