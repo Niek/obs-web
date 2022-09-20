@@ -80,6 +80,7 @@
   let isFullScreen
   let isStudioMode
   let isSceneOnTop
+  let isVirtualCamActive
   let isIconMode = window.localStorage.getItem('isIconMode') || false
   let isReplaying
   let editable = false
@@ -222,11 +223,11 @@
       const stats = await sendCommand('GetStats')
       const streaming = await sendCommand('GetStreamStatus')
       const recording = await sendCommand('GetRecordStatus')
-      const virtualcam = await sendCommand('GetVirtualCamStatus')
-      heartbeat = { stats, streaming, recording, virtualcam }
+      heartbeat = { stats, streaming, recording }
       // console.log(heartbeat);
     }, 1000) // Heartbeat
     isStudioMode = (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false
+    isVirtualCamActive = (await sendCommand('GetVirtualCamStatus')).outputActive || false
   })
 
   obs.on('ConnectionError', async () => {
@@ -237,6 +238,11 @@
     } else {
       await connect()
     }
+  })
+
+  obs.on('VirtualcamStateChanged', async (data) => {
+    console.log('VirtualcamStateChanged', data.outputActive)
+    isVirtualCamActive = data && data.outputActive
   })
 
   obs.on('StudioModeStateChanged', async (data) => {
@@ -307,7 +313,7 @@
                 <span class="icon"><Icon path={mdiRecord} /></span>
               </button>
             {/if}
-            {#if heartbeat && heartbeat.virtualcam && heartbeat.virtualcam.outputActive}
+            {#if isVirtualCamActive}
               <button class="button is-danger" on:click={stopVirtualCam} title="Stop Virtual Webcam">
                 <span class='icon'><Icon path={mdiCameraOff} /></span>
               </button>
