@@ -1,7 +1,7 @@
 # OBS-web
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-14-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-15-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
@@ -85,6 +85,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center"><a href="https://github.com/TotalInternalReflection"><img src="https://avatars.githubusercontent.com/u/49660235?v=4?s=100" width="100px;" alt=""/><br /><sub><b>TotalInternalReflection</b></sub></a><br /><a href="https://github.com/Niek/obs-web/issues?q=author%3ATotalInternalReflection" title="Bug reports">🐛</a></td>
       <td align="center"><a href="https://www.nossa.me/"><img src="https://avatars.githubusercontent.com/u/17525117?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Alessio Nossa</b></sub></a><br /><a href="#ideas-alessionossa" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center"><a href="https://tt2468.net"><img src="https://avatars.githubusercontent.com/u/28720189?v=4?s=100" width="100px;" alt=""/><br /><sub><b>tt2468</b></sub></a><br /><a href="#ideas-tt2468" title="Ideas, Planning, & Feedback">🤔</a></td>
+    </tr>
+    <tr>
+      <td align="center"><a href="https://github.com/donahuetech"><img src="https://avatars.githubusercontent.com/u/28513975?v=4?s=100" width="100px;" alt=""/><br /><sub><b>donahuetech</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=donahuetech" title="Code">💻</a> <a href="#ideas-donahuetech" title="Ideas, Planning, & Feedback">🤔</a></td>
     </tr>
   </tbody>
 </table>
