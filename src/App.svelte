@@ -11,7 +11,7 @@
     mdiBorderVertical, mdiArrowSplitHorizontal,
     mdiAccessPoint, mdiAccessPointOff,
     mdiRecord, mdiStop, mdiPause, mdiPlayPause,
-    mdiConnection,
+    mdiConnection, mdiCameraOff, mdiCamera,
     mdiMotionPlayOutline, mdiMotionPlay
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
@@ -80,6 +80,7 @@
   let isFullScreen
   let isStudioMode
   let isSceneOnTop
+  let isVirtualCamActive
   let isIconMode = window.localStorage.getItem('isIconMode') || false
   let isReplaying
   let editable = false
@@ -158,6 +159,14 @@
     await sendCommand('StopRecord')
   }
 
+  async function startVirtualCam () {
+    await sendCommand('StartVirtualCam')
+  }
+
+  async function stopVirtualCam () {
+    await sendCommand('StopVirtualCam')
+  }
+
   async function pauseRecording () {
     await sendCommand('PauseRecord')
   }
@@ -218,6 +227,7 @@
       // console.log(heartbeat);
     }, 1000) // Heartbeat
     isStudioMode = (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false
+    isVirtualCamActive = (await sendCommand('GetVirtualCamStatus')).outputActive || false
   })
 
   obs.on('ConnectionError', async () => {
@@ -228,6 +238,11 @@
     } else {
       await connect()
     }
+  })
+
+  obs.on('VirtualcamStateChanged', async (data) => {
+    console.log('VirtualcamStateChanged', data.outputActive)
+    isVirtualCamActive = data && data.outputActive
   })
 
   obs.on('StudioModeStateChanged', async (data) => {
@@ -296,6 +311,15 @@
             {:else}
               <button class="button is-danger is-light" on:click={startRecording} title="Start Recording">
                 <span class="icon"><Icon path={mdiRecord} /></span>
+              </button>
+            {/if}
+            {#if isVirtualCamActive}
+              <button class="button is-danger" on:click={stopVirtualCam} title="Stop Virtual Webcam">
+                <span class='icon'><Icon path={mdiCameraOff} /></span>
+              </button>
+            {:else}
+              <button class="button is-danger is-light" on:click={startVirtualCam} title="Start Virtual Webcam">
+                <span class='icon'><Icon path={mdiCamera} /></span>
               </button>
             {/if}
             <button class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
