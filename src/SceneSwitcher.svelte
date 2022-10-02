@@ -22,7 +22,6 @@
     console.log('GetSceneList', data)
     programScene = data.currentProgramSceneName || ''
     previewScene = data.currentPreviewSceneName
-    // Reverse the list, because obs-websocket returns the scenes in the wrong order
     scenes = data.scenes
     data = await sendCommand('GetStudioModeEnabled')
     if (data && data.studioModeEnabled) {
@@ -39,7 +38,6 @@
 
   obs.on('SceneListChanged', async (data) => {
     console.log('SceneListChanged', data.scenes.length)
-    // Reverse the list, because obs-websocket returns the scenes in the wrong order
     scenes = data.scenes
   })
 
