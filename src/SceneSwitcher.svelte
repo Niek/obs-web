@@ -23,7 +23,7 @@
     programScene = data.currentProgramSceneName || ''
     previewScene = data.currentPreviewSceneName
     // Reverse the list, because obs-websocket returns the scenes in the wrong order
-    scenes = data.scenes.reverse()
+    scenes = data.scenes
     data = await sendCommand('GetStudioModeEnabled')
     if (data && data.studioModeEnabled) {
       isStudioMode = true
@@ -40,7 +40,7 @@
   obs.on('SceneListChanged', async (data) => {
     console.log('SceneListChanged', data.scenes.length)
     // Reverse the list, because obs-websocket returns the scenes in the wrong order
-    scenes = data.scenes.reverse()
+    scenes = data.scenes
   })
 
   obs.on('SceneCreated', async (data) => {
@@ -100,7 +100,7 @@
   class:with-icon={buttonStyle === 'icon'}
   >
   {#if editable}
-    {#each scenes as scene}
+    {#each scenes.reverse() as scene}
     <li>
       <!-- svelte-ignore a11y-label-has-associated-control -->
       <label class="label">Name</label>
@@ -111,7 +111,7 @@
     </li>
     {/each}
   {:else}
-    {#each scenesFiltered as scene}
+    {#each scenesFiltered.reverse() as scene}
     <li>
       <SourceButton name={scene.sceneName}
         on:click={sceneClicker(scene)}
