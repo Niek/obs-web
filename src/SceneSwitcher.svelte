@@ -13,7 +13,7 @@
   let isStudioMode = false
   const sceneIcons = JSON.parse(window.localStorage.getItem('sceneIcons') || '{}')
 
-  $: scenesFiltered = scenes.filter((scene) => scene.sceneName.indexOf('(hidden)') === -1)
+  $: scenesFiltered = scenes.filter((scene) => scene.sceneName.indexOf('(hidden)') === -1).reverse()
   // store sceneIcons on change
   $: window.localStorage.setItem('sceneIcons', JSON.stringify(sceneIcons))
 
@@ -109,7 +109,7 @@
     </li>
     {/each}
   {:else}
-    {#each scenesFiltered.reverse() as scene}
+    {#each scenesFiltered as scene}
     <li>
       <SourceButton name={scene.sceneName}
         on:click={sceneClicker(scene)}
