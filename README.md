@@ -18,13 +18,13 @@
 
 #### Features:
 
-- No installation or extra software needed, works in any modern browser (desktop + mobile)
+- No installation or extra software is needed, works in any modern browser (desktop + mobile)
 - Support for local network and internet control through [WSS tunnels](https://github.com/obsproject/obs-websocket/blob/4.x-compat/SSL-TUNNELLING.md)
 - Easily switch scenes and start/stop streaming and recording
 - Support for Studio Mode (preview and program scenes)
 - Support for Virtual Camera
 - Live view of preview & output, updating 1 fps
-- Fullscreen button and wakelock support (keeps screen on)
+- Fullscreen button and wakelock support (keeps the screen on)
 - Replay Buffer button
 - Easy bookmarking/deeplink by specifying host in URL
 - Profile switching support
