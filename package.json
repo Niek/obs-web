@@ -15,7 +15,7 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "bulma": "^0.9.4",
     "compare-versions": "^5.0.1",
-    "eslint-plugin-svelte": "^2.10.0",
+    "eslint-plugin-svelte": "^2.11.0",
     "mdi-svelte": "^1.1.2",
     "obs-websocket-js": "^5.0.1",
     "postcss": "^8.4.18",
