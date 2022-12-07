@@ -106,6 +106,7 @@
     </div>
     <div class="column is-narrow">
       {#each transitions as transition}
+      
       <button class="button is-fullwidth is-info" style="margin-bottom: .5rem;"
         on:click={async () => {
           await sendCommand('SetCurrentSceneTransition', { transitionName: transition.transitionName })
