@@ -66,12 +66,12 @@
   })
 
   obs.on('CurrentProgramSceneChanged', (data) => {
-    console.log('CurrentProgramSceneChanged', data)
+    //console.log('CurrentProgramSceneChanged', data)
     programScene = data.sceneName || ''
   })
 
   obs.on('CurrentPreviewSceneChanged', async (data) => {
-    console.log('CurrentPreviewSceneChanged', data)
+    //console.log('CurrentPreviewSceneChanged', data)
     previewScene = data.sceneName
   })
 

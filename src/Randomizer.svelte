@@ -25,13 +25,13 @@
 
     })
 
-  obs.on('BroadcastCustomEvent', data => {
-    console.log(data['data']['randomscene']);
-    if (data['data']['randomscene'] == 'running') {
-      statusrandom = true;
-    }
+  obs.on('CustomEvent', data => {
+    console.log("eventData",data);
+    // if (data['eventData']['randomscene'] == 'running') {
+    //   statusrandom = true;
+    // }
   });
-    
+
   async function setMode() {
     //console.log(transitionsmode);
   }
@@ -83,6 +83,8 @@
 
   async function GetRandomScene() {
     
+    await sendCommand('BroadcastCustomEvent', {eventData: {randomscene: 'active'}});
+
     let data = await sendCommand('GetSceneList')
 
     var item = data.scenes[Math.floor(Math.random()*data.scenes.length)];
@@ -98,8 +100,8 @@
 
     previousrandom = item;
 
-    await sendCommand('BroadcastCustomEvent', { realm: 'randomscene', eventData: {randomscene: 'active'}});
-
+    //await sendCommand('BroadcastCustomEvent', { realm: 'randomscene', eventData: {randomscene: 'active'}});
+  
   }
   </script>
   
