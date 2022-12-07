@@ -24,6 +24,13 @@
       transitionsmode = data.transitions[0].transitionName;
 
     })
+
+  obs.on('BroadcastCustomEvent', data => {
+    console.log(data['data']['randomscene']);
+    if (data['data']['randomscene'] == 'running') {
+      statusrandom = true;
+    }
+  });
     
   async function setMode() {
     //console.log(transitionsmode);

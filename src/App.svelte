@@ -276,13 +276,6 @@
       (await sendCommand('GetVirtualCamStatus')).outputActive || false
   })
 
-  obs.on('BroadcastCustomEvent', data => {
-    // console.log(data['data']['randomscene']);
-    if (data['data']['randomscene'] == 'running') {
-      statusrandom = true;
-    }
-  });
-
   obs.on('ConnectionError', async () => {
     errorMessage = 'Please enter your password:'
     document.getElementById('password').focus()
