@@ -5,14 +5,25 @@
   // Imports
   import { onMount } from 'svelte'
   import {
-    mdiSquareRoundedBadge, mdiSquareRoundedBadgeOutline,
-    mdiImageEdit, mdiImageEditOutline,
-    mdiFullscreen, mdiFullscreenExit,
-    mdiBorderVertical, mdiArrowSplitHorizontal,
-    mdiAccessPoint, mdiAccessPointOff,
-    mdiRecord, mdiStop, mdiPause, mdiPlayPause,
-    mdiConnection, mdiCameraOff, mdiCamera,
-    mdiMotionPlayOutline, mdiMotionPlay
+    mdiSquareRoundedBadge,
+    mdiSquareRoundedBadgeOutline,
+    mdiImageEdit,
+    mdiImageEditOutline,
+    mdiFullscreen,
+    mdiFullscreenExit,
+    mdiBorderVertical,
+    mdiArrowSplitHorizontal,
+    mdiAccessPoint,
+    mdiAccessPointOff,
+    mdiRecord,
+    mdiStop,
+    mdiPause,
+    mdiPlayPause,
+    mdiConnection,
+    mdiCameraOff,
+    mdiCamera,
+    mdiMotionPlayOutline,
+    mdiMotionPlay
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
@@ -40,7 +51,7 @@
             await navigator.wakeLock.request('screen')
           }
         })
-      } catch (e) { }
+      } catch (e) {}
     }
 
     // Toggle the navigation hamburger menu on mobile
@@ -91,9 +102,7 @@
   let errorMessage = ''
   let imageFormat = 'jpg'
 
-  $: isIconMode
-    ? window.localStorage.setItem('isIconMode', 'true')
-    : window.localStorage.removeItem('isIconMode')
+  $: isIconMode ? window.localStorage.setItem('isIconMode', 'true') : window.localStorage.removeItem('isIconMode')
 
   function formatTime (secs) {
     secs = Math.round(secs / 1000)
@@ -101,9 +110,7 @@
     secs -= hours * 3600
     const mins = Math.floor(secs / 60)
     secs -= mins * 60
-    return (hours > 0)
-      ? `${hours}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`
-      : `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`
+    return hours > 0 ? `${hours}:${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}` : `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`
   }
 
   function toggleFullScreen () {
@@ -135,7 +142,9 @@
     console.debug('ToggleReplayBuffer', data.outputActive)
     if (data.outputActive === undefined) {
       replayError = 'Replay buffer is not enabled.'
-      setTimeout(function () { replayError = '' }, 5000)
+      setTimeout(function () {
+        replayError = ''
+      }, 5000)
     } else isReplaying = data.outputActive
   }
 
@@ -262,8 +271,7 @@
 
 <nav class="navbar is-primary" aria-label="main navigation">
   <div class="navbar-brand">
-    <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
-      <img src="favicon.png" alt="OBS-web" class="rotate" /></a>
+    <a class="navbar-item is-size-4 has-text-weight-bold" href="/"> <img src="favicon.png" alt="OBS-web" class="rotate" /></a>
 
     <!-- svelte-ignore a11y-missing-attribute -->
     <button class="navbar-burger burger" aria-label="menu" aria-expanded="false" data-target="navmenu">
@@ -315,11 +323,11 @@
             {/if}
             {#if isVirtualCamActive}
               <button class="button is-danger" on:click={stopVirtualCam} title="Stop Virtual Webcam">
-                <span class='icon'><Icon path={mdiCameraOff} /></span>
+                <span class="icon"><Icon path={mdiCameraOff} /></span>
               </button>
             {:else}
               <button class="button is-danger is-light" on:click={startVirtualCam} title="Start Virtual Webcam">
-                <span class='icon'><Icon path={mdiCamera} /></span>
+                <span class="icon"><Icon path={mdiCamera} /></span>
               </button>
             {/if}
             <button class:is-light={!isStudioMode} class="button is-link" on:click={toggleStudioMode} title="Toggle Studio Mode">
@@ -368,15 +376,15 @@
   <div class="container">
     {#if connected}
       {#if isSceneOnTop}
-        <ProgramPreview imageFormat={imageFormat} />
+        <ProgramPreview {imageFormat} />
       {/if}
-      <SceneSwitcher bind:scenes={scenes} buttonStyle={isIconMode ? 'icon' : 'text'} editable={editable} />
+      <SceneSwitcher bind:scenes buttonStyle={isIconMode ? 'icon' : 'text'} {editable} />
       {#if !isSceneOnTop}
-        <ProgramPreview imageFormat={imageFormat} />
+        <ProgramPreview {imageFormat} />
       {/if}
       {#each scenes as scene}
         {#if scene.sceneName.indexOf('(switch)') > 0}
-        <SourceSwitcher name={scene.sceneName} imageFormat={imageFormat} buttonStyle="screenshot" />
+          <SourceSwitcher name={scene.sceneName} {imageFormat} buttonStyle="screenshot" />
         {/if}
       {/each}
     {:else}
@@ -384,7 +392,7 @@
         Welcome to
         <strong>OBS-web</strong>
         - the easiest way to control
-        <a href="https://obsproject.com/" target="_blank">OBS</a>
+        <a href="https://obsproject.com/" target="_blank" rel="noreferrer">OBS</a>
         remotely!
       </h1>
 
@@ -411,8 +419,15 @@
       <form on:submit|preventDefault={connect}>
         <div class="field is-grouped">
           <p class="control is-expanded">
-              <input id="host" bind:value={address} class="input" type="text" autocomplete="" placeholder="ws://localhost:4455" />
-              <input id="password" bind:value={password} class="input" type="password" autocomplete="current-password" placeholder="password (leave empty if you have disabled authentication)" />
+            <input id="host" bind:value={address} class="input" type="text" autocomplete="" placeholder="ws://localhost:4455" />
+            <input
+              id="password"
+              bind:value={password}
+              class="input"
+              type="password"
+              autocomplete="current-password"
+              placeholder="password (leave empty if you have disabled authentication)"
+            />
           </p>
           <p class="control">
             <button class="button is-success">Connect</button>
@@ -421,12 +436,13 @@
       </form>
       <p class="help">
         Make sure that you use <a href="https://github.com/obsproject/obs-studio/releases">OBS v28+</a> or install the
-        <a href="https://github.com/obsproject/obs-websocket/releases/tag/{OBS_WEBSOCKET_LATEST_VERSION}" target="_blank">obs-websocket {OBS_WEBSOCKET_LATEST_VERSION} plugin</a>
+        <a href="https://github.com/obsproject/obs-websocket/releases/tag/{OBS_WEBSOCKET_LATEST_VERSION}" target="_blank" rel="noreferrer"
+          >obs-websocket {OBS_WEBSOCKET_LATEST_VERSION} plugin</a
+        >
         for v27. If you use an older version of OBS, see the <a href="/v4/">archived OBS-web v4</a> page.
       </p>
     {/if}
   </div>
-
 </section>
 
 <footer class="footer">
