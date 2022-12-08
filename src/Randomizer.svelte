@@ -1,6 +1,7 @@
 <script>
     import { onMount } from 'svelte'
     import { obs, sendCommand } from './obs.js'
+    import { writable } from 'svelte/store'
 
     import {
     mdiShuffle
@@ -12,6 +13,14 @@
     let statusrandom = false;
     let previousrandom;
     let delaytime = 5;
+    let inputrandomness = 4;
+
+    const storeddelay = localStorage.prefsdelay
+    if (storeddelay) delaytime = storeddelay
+
+    const storedrandomness = localStorage.prefsrandomness
+    if (storedrandomness) inputrandomness = storedrandomness
+
     let transitionsmode = '';
     let transitions = []
   
@@ -39,6 +48,19 @@
   async function setdelay() {
     //delaytime = 1;
     //console.log(delaytime);
+
+    const stored = localStorage.prefsdelay
+    const prefsdelay = writable(stored || delaytime)
+    localStorage.setItem('prefsdelay', delaytime)
+  }
+
+  async function setrandomness() {
+    //delaytime = 1;
+    //console.log(delaytime);
+
+    const stored = localStorage.prefsrandomness
+    const prefsrandomness = writable(stored || inputrandomness)
+    localStorage.setItem('prefsrandomness', inputrandomness)
   }
 
   async function RandomScene() {
@@ -64,7 +86,7 @@
     while (true) {
 
       if (statusrandom) {
-        let randomness = Math.floor(Math.random() * 4)
+        let randomness = Math.floor(Math.random() * parseFloat(inputrandomness))
         let timeoutrandom = (randomness + parseInt(delaytime)) * 1000;
         console.log('delay set',timeoutrandom/1000, 'randomness', randomness, 'delaytime', delaytime);
         await delay(timeoutrandom);
@@ -116,8 +138,12 @@
   </button>
 {/if}
 
-<div class="button is-info is-light" style="margin: 0 .5rem .5rem 0;">
+<div class="button is-info is-light" style="margin: 0 .5rem .5rem 0;width: 3em;">
   <input class="is-info" title="Change Delaytime" bind:value={delaytime} on:change={setdelay} style="line-height: 2.7em;width: 3em;text-align: center;border-top-style: hidden; border-right-style: hidden; border-left-style: hidden; border-bottom-style: hidden; background-color: #eff5fb;">
+</div>
+
+<div class="button is-info is-light" style="margin: 0 .5rem .5rem 0;width: 3em;">
+  <input class="is-info" title="Change Randomness" bind:value={inputrandomness} on:change={setrandomness} style="line-height: 2.7em;width: 3em;text-align: center;border-top-style: hidden; border-right-style: hidden; border-left-style: hidden; border-bottom-style: hidden; background-color: #eff5fb;">
 </div>
 
 <div class="select" style="margin: 0 .5rem .5rem 0;">

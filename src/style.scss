@@ -16,3 +16,40 @@ $footer-padding: 3rem 1.5rem;
 .rotate {
   animation: rotating 10s linear infinite;
 }
+
+
+
+body {
+  background-color: $light;
+  height: 100vh;
+  transition: all 0.4s ease;
+}
+
+// Some styling 
+
+body.dark {
+  background-color: $dark;
+  color: $light;
+}
+
+body.dark .subtitle,
+body.dark .title {
+  color: $light;
+}
+
+body.dark a p body{
+  color: $dark;
+}
+body.dark strong{
+  color: $light;
+}
+
+body.dark .footer{
+  background-color: $dark;
+  color: $light;
+}
+
+
+body.dark .navbar.is-primary{
+  background-color: rgb(33, 33, 33);
+}
