@@ -5,8 +5,8 @@
 
     import {
     mdiShuffle
-  } from '@mdi/js'
-  import Icon from 'mdi-svelte'
+    } from '@mdi/js'
+    import Icon from 'mdi-svelte'
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -14,15 +14,22 @@
     let previousrandom;
     let delaytime = 5;
     let inputrandomness = 4;
+    let transitionsmode;
+    let transitions = []
+    let client = "user";
 
     const storeddelay = localStorage.prefsdelay
     if (storeddelay) delaytime = storeddelay
 
+    const storedmode = localStorage.prefsmode
+    if (storedmode) transitionsmode = storedmode
+
+    console.log('get storedmode',transitionsmode)
+
     const storedrandomness = localStorage.prefsrandomness
     if (storedrandomness) inputrandomness = storedrandomness
 
-    let transitionsmode = '';
-    let transitions = []
+
   
     onMount(async function () {
 
@@ -30,19 +37,45 @@
       data = await sendCommand('GetSceneTransitionList')
       transitions = data.transitions || []
 
-      transitionsmode = data.transitions[0].transitionName;
+      // transitionsmode = data.transitions[0].transitionName;
 
     })
 
   obs.on('CustomEvent', data => {
-    console.log("eventData",data);
-    // if (data['eventData']['randomscene'] == 'running') {
-    //   statusrandom = true;
-    // }
+    
+    if (data['client'] == 'cli') client = "cli"
+    else client = "user"
+
+    transitionsmode = data['transitionsmode'] 
+    delaytime = data['delaytime'];
+    inputrandomness = data['inputrandomness'];
+
+
+    if (data['randomizer'] == true) {
+      
+      statusrandom = true;
+      if (client == 'user') StartRandomScene()
+      
+    } else {
+      
+      statusrandom = false;
+    
+    }
+
   });
 
   async function setMode() {
     //console.log(transitionsmode);
+
+    const stored = localStorage.prefsmode
+    const prefsmode = writable(stored || transitionsmode)
+    localStorage.setItem('prefsmode', transitionsmode)
+
+    console.log('save setMode',transitionsmode)
+
+    if (statusrandom) {
+      await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness,"client":client, "randomizer": statusrandom }});
+    }
   }
 
   async function setdelay() {
@@ -52,6 +85,11 @@
     const stored = localStorage.prefsdelay
     const prefsdelay = writable(stored || delaytime)
     localStorage.setItem('prefsdelay', delaytime)
+
+    if (statusrandom) {
+      await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness,"client":client, "randomizer": statusrandom }});
+    }
+
   }
 
   async function setrandomness() {
@@ -61,22 +99,22 @@
     const stored = localStorage.prefsrandomness
     const prefsrandomness = writable(stored || inputrandomness)
     localStorage.setItem('prefsrandomness', inputrandomness)
+
+    if (statusrandom) {
+      await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness,"client":client, "randomizer": statusrandom }});
+    }
   }
 
   async function RandomScene() {
 
     if (!statusrandom) {
 
-      //console.log('start --> randomscene');
-      statusrandom = true;
-      StartRandomScene()
-      //await sendCommand('BroadcastCustomMessage', { realm: 'randomscene', data: {randomscene: 'activate'}});
+      await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness, "client": client, "randomizer": true }});
 
     } else {
-
-      //console.log('stop --> randomscene');
-      //await sendCommand('BroadcastCustomMessage', { realm: 'randomscene', data: {randomscene: 'deactivate'}});
-      statusrandom = false;
+      
+      await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness, "client": client, "randomizer": false }});
+      
     }
 
   }
@@ -100,13 +138,10 @@
       }
 
     }
-
   }
 
   async function GetRandomScene() {
     
-    await sendCommand('BroadcastCustomEvent', {eventData: {randomscene: 'active'}});
-
     let data = await sendCommand('GetSceneList')
 
     var item = data.scenes[Math.floor(Math.random()*data.scenes.length)];
@@ -122,8 +157,6 @@
 
     previousrandom = item;
 
-    //await sendCommand('BroadcastCustomEvent', { realm: 'randomscene', eventData: {randomscene: 'active'}});
-  
   }
   </script>
   
@@ -148,8 +181,14 @@
 
 <div class="select" style="margin: 0 .5rem .5rem 0;">
   <select bind:value={transitionsmode} title="Change Profile" on:change={setMode}>
+
+    {#if transitionsmode}
+      <option value={transitionsmode}>{transitionsmode} (saved)</option>
+    {/if}
+    
     {#each transitions as transition}
-      <option value={transition.transitionName}>{transition.transitionName}</option>
+      <option value={transition.transitionName}>{transition.transitionName}</option>      
     {/each}
+
   </select>
 </div>

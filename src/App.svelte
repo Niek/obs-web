@@ -32,6 +32,7 @@
     mdiSettingsHelper,
     mdiBookSettings,
     mdiCogBox,
+    mdiCalendar,
     mdiCogs
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
@@ -46,6 +47,8 @@
   import SceneCollectionSelect from './SceneCollectionSelect.svelte'
   import Randomizer from './Randomizer.svelte';
   import Settings from './Settings.svelte';
+  import PlannerDiv from './PlannerDiv.svelte';
+  import PlannerButton from './PlannerButton.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -116,6 +119,7 @@
   let isReplaying
   let editable = false
   let mysettings = false
+  let myplanner = false
   let address
   let password
   let scenes = []
@@ -124,7 +128,7 @@
   let imageFormat = 'jpg'
   let myActiveMenuItems = {}
 
-  myActiveMenuItems = { "info": true, "stream": true, "record": true, "webcam": true, "studiomode": true, "sceneontop": true, "scenes": true,"scenesicons": true,"replaybuffer": true, "profileselect": true, "scenecollectionselect": true, "randomizer": true, "footer":true, "darkmode": false }
+  myActiveMenuItems = { "planner": false, "info": true, "stream": true, "record": true, "webcam": true, "studiomode": true, "sceneontop": true, "scenes": true,"scenesicons": true,"replaybuffer": true, "profileselect": true, "scenecollectionselect": true, "randomizer": true, "footer":true, "darkmode": false }
   const stored = localStorage.prefs
   
   if (!stored){
@@ -371,16 +375,15 @@
               </button>
             {/if}
 
-          <button
-          class:is-light={!mysettings}
-          class="button is-link"
-          title="Edit Settings"
-          on:click={() => (mysettings = !mysettings)}
-        >
-          <span class="icon">
-            <Icon path={mysettings ? mdiCogs : mdiCogs} />
-          </span>
+
+        <button class:is-light={!mysettings} class="button is-link" title="Edit Settings" on:click={() => (mysettings = !mysettings)} >
+        <span class="icon"> <Icon path={mysettings ? mdiCogs : mdiCogs} /> </span>
         </button>
+        
+        {#if myActiveMenuItems.planner}
+          <PlannerButton bind:myplanner={myplanner} />
+        {/if}
+
           {#if myActiveMenuItems.stream}
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button
@@ -565,7 +568,8 @@
       {#if isSceneOnTop}
         <ProgramPreview {imageFormat} />
       {/if}
-      <Settings  {mysettings} bind:myActiveMenuItems={myActiveMenuItems}/>
+      <Settings {mysettings} bind:myActiveMenuItems={myActiveMenuItems}/>
+      <PlannerDiv bind:myplanner={myplanner}/>
       <SceneSwitcher
         bind:scenes
         buttonStyle={isIconMode ? 'icon' : 'text'}

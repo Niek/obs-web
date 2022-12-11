@@ -49,7 +49,15 @@ body.dark .footer{
   color: $light;
 }
 
-
 body.dark .navbar.is-primary{
   background-color: rgb(33, 33, 33);
+}
+
+body.dark .divTableCell{
+  background-color: hsl(0deg, 0%, 96%);
+  color: $dark;
+}
+
+body.dark .section{
+  background-color: $dark;
 }

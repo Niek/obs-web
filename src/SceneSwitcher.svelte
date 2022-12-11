@@ -93,35 +93,39 @@
   }
 </script>
 
-<ol
-  class:column={editable}
-  class:with-icon={buttonStyle === 'icon'}
-  >
+
   {#if editable}
-    {#each scenes.reverse() as scene}
-    <li>
-      <!-- svelte-ignore a11y-label-has-associated-control -->
-      <label class="label">Name</label>
-      <input type="text" class="input" title={scene.sceneName} value={scene.sceneName} on:change={onNameChange} />
-      <!-- svelte-ignore a11y-label-has-associated-control -->
-      <label class="label">Icon</label>
-      <input type="text" class="input" title={scene.sceneName} value={sceneIcons[scene.sceneName] || ''} on:change={onIconChange} />
-    </li>
-    {/each}
+  <div style="background-color: #fff;">
+    <ol class:column={editable} class:with-icon={buttonStyle === 'icon'} >
+      {#each scenes.reverse() as scene}      
+        <li>
+          <!-- svelte-ignore a11y-label-has-associated-control -->
+          <label class="label">Name</label>
+          <input type="text" class="input" title={scene.sceneName} value={scene.sceneName} on:change={onNameChange} />
+          <!-- svelte-ignore a11y-label-has-associated-control -->
+          <label class="label">Icon</label>
+          <input type="text" class="input" title={scene.sceneName} value={sceneIcons[scene.sceneName] || ''} on:change={onIconChange} />
+        </li>
+      {/each}
+    </ol>
+  </div>
   {:else}
-    {#each scenesFiltered as scene}
-    <li>
-      <SourceButton name={scene.sceneName}
-        on:click={sceneClicker(scene)}
-        isProgram={programScene === scene.sceneName}
-        isPreview={previewScene === scene.sceneName}
-        buttonStyle={buttonStyle}
-        icon={sceneIcons[scene.sceneName] || `#${Math.floor(Math.random() * 16777215).toString(16)}`}
-      />
-    </li>
-    {/each}
+    <ol class:column={editable} class:with-icon={buttonStyle === 'icon'} >
+      {#each scenesFiltered as scene}
+      
+        <li>
+          <SourceButton name={scene.sceneName}
+            on:click={sceneClicker(scene)}
+            isProgram={programScene === scene.sceneName}
+            isPreview={previewScene === scene.sceneName}
+            buttonStyle={buttonStyle}
+            icon={sceneIcons[scene.sceneName] || `#${Math.floor(Math.random() * 16777215).toString(16)}`}
+          />
+        </li>
+      
+      {/each}
+     </ol>
   {/if}
-</ol>
 
 <style>
   ol {
