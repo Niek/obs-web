@@ -2,6 +2,9 @@ const OBSWebSocket = require('obs-websocket-js').default;
 const obs = new OBSWebSocket();
 const http = require("http");
 
+const { insertLiveBroadcast, insertLiveBroadcastlist } = require('./youtube');
+
+
 //const { obs, sendCommand } = require('./obs.js');
 
 const arg = require('arg');
@@ -63,11 +66,27 @@ obs.on('CustomEvent', data => {
     delaytime = data['delaytime'];
     inputrandomness = data['inputrandomness'];
 
+    /*
+    if (data['insertLiveBroadcast'] == true) {
+
+      //submit a new insertLiveBroadcast and send back response 
+      //youtube.js 
+    }
+    */
+
+    /*
+    if (data['ListLiveBroadcast'] == true) {
+
+      //submit a new insertLiveBroadcast and send back response (list)
+      //youtube.js
+
+    }
+    */
 
     if (data['randomizer'] == true) {
       
       statusrandom = true;
-	  StartRandomScene()
+	    StartRandomScene()
 	  
     } else {
       
@@ -75,10 +94,9 @@ obs.on('CustomEvent', data => {
     
     }
 
-  });
+});
 
-
-  async function StartRandomScene() {
+async function StartRandomScene() {
 
     while (true) {
 
@@ -97,9 +115,7 @@ obs.on('CustomEvent', data => {
       }
 
     }
-  }
-
-
+}
 
 async function connect () {
 
@@ -121,27 +137,31 @@ async function connect () {
 	  
 	  if (inputstartStream) await startStream()
 	  if (inputstartRecording) await startRecording()
-	  if (host) {	
 	  
-		heartbeatInterval = setInterval(async () => {
-			const stats = await sendCommand('GetStats')
-			const streaming = await sendCommand('GetStreamStatus')
-			const recording = await sendCommand('GetRecordStatus')
-			heartbeat = { stats, streaming, recording, randomizer }
-			//console.log("heartbeat interval:", heartbeat);
-		}, 1000)
-	
-	} else {
-		
-		if (startrandom) await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness,"client":client, "randomizer": true }});
+    //If hosting server:
+    //Send heartbeat
+    if (host) {	
+	  
+      heartbeatInterval = setInterval(async () => {
+        const stats = await sendCommand('GetStats')
+        const streaming = await sendCommand('GetStreamStatus')
+        const recording = await sendCommand('GetRecordStatus')
+        heartbeat = { stats, streaming, recording, randomizer }
+        //console.log("heartbeat interval:", heartbeat);
+      }, 1000)
+    
+    } else {
+      
+      // Else start if (--startrandom arg) the randomizer event from commandline...
+      if (startrandom) await sendCommand('BroadcastCustomEvent', {eventData: {"delaytime":delaytime,"transitionsmode":transitionsmode,"inputrandomness":inputrandomness,"client":client, "randomizer": true }});
 
-	}
+    }
 
     } catch (e) {
       console.log(e)
       errorMessage = e.message
     }
-  }
+}
 
 async function disconnect () {
 	await obs.disconnect()
@@ -166,8 +186,6 @@ async function updateScenes() {
 	}); // Skip hidden scenes
 // 	console.log('Scenes updated');
 }
-
-
 
 async function GetRandomScene() {
     
@@ -196,6 +214,7 @@ async function outputjson(){
 		res.setHeader("Content-Type", "application/json");
 		res.writeHead(200);
 		res.end(JSON.stringify(heartbeat, null, 3));
+    console.log(req)
 		console.log(JSON.stringify(heartbeat));
 	}
 
@@ -204,6 +223,10 @@ async function outputjson(){
 		console.log(`Server is running on http://${host}:${port}`);
 	});
 
-}	  
+}  
+
+//insertLiveBroadcast()
+//insertLiveBroadcastlist()
+
 if (host) outputjson();
 connect()

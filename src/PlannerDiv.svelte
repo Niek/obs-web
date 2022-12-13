@@ -1,13 +1,12 @@
 <script>
   import { onMount } from 'svelte'
   export let myplanner = false;
-
   onMount(async function () {
 
   })
 
-  async function planclick() {
-
+  async function initializeGapi() {
+    alert('hi');
   }
 
 </script>
@@ -22,7 +21,7 @@
     <label class="label" for="Time">Time:</label>
     <input type="text" class="input" title="Time" value="21:00" />
     <br><br>
-    <button on:click={planclick('click')} title="date" name="date">Submit</button>
+    <button on:click={initializeGapi}> Submit</button>
   {/if}
 </div>
 <br>

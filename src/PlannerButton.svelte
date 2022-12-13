@@ -3,8 +3,8 @@
   import {
   mdiCalendar,
     mdiShuffle
-    } from '@mdi/js'
-  import Icon from 'mdi-svelte'
+    } from '../node_modules/@mdi/js/mdi'
+  import Icon from '../node_modules/mdi-svelte'
 
   export let myplanner = false;
 

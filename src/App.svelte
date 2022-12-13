@@ -336,6 +336,7 @@
 </script>
 
 <svelte:head>
+  <!-- <script defer async src="https://apis.google.com/js/api.js?key=AIzaSyB0veplVhbw20B6sQwS827VRr3M9uFAA2M"></script> -->
   <title>OBS-web remote control</title>
 </svelte:head>
 

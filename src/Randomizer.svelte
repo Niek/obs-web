@@ -1,12 +1,12 @@
 <script>
     import { onMount } from 'svelte'
     import { obs, sendCommand } from './obs.js'
-    import { writable } from 'svelte/store'
+    import { writable } from '../node_modules/svelte/store'
 
     import {
     mdiShuffle
-    } from '@mdi/js'
-    import Icon from 'mdi-svelte'
+    } from '../node_modules/@mdi/js/mdi'
+    import Icon from '../node_modules/mdi-svelte'
 
     const delay = ms => new Promise(res => setTimeout(res, ms));
 
