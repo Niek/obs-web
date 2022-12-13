@@ -1,15 +1,20 @@
-import svelte from 'rollup-plugin-svelte'
-import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import livereload from 'rollup-plugin-livereload'
-import terser from '@rollup/plugin-terser'
-import postcss from 'rollup-plugin-postcss'
-import purgecss from '@fullhuman/postcss-purgecss'
-import nodePolyfills from 'rollup-plugin-polyfill-node'
-import html from '@rollup/plugin-html'
+import svelte from 'rollup-plugin-svelte';
+import resolve from '@rollup/plugin-node-resolve';
+import commonjs from '@rollup/plugin-commonjs';
+import livereload from 'rollup-plugin-livereload';
+import terser from '@rollup/plugin-terser';
+import postcss from 'rollup-plugin-postcss';
+import purgecss from '@fullhuman/postcss-purgecss';
+import nodePolyfills from 'rollup-plugin-polyfill-node';
+import html from '@rollup/plugin-html';
+// import json from '@rollup/plugin-json';
 
-const production = !process.env.ROLLUP_WATCH
-const version = require('fs').existsSync('.git') ? String(require('child_process').execSync('git rev-parse --short HEAD')).trim() : 'static' // append short git commit to bundles
+const production = !process.env.ROLLUP_WATCH;
+const version = require('fs').existsSync('.git')
+  ? String(
+      require('child_process').execSync('git rev-parse --short HEAD')
+    ).trim()
+  : 'static'; // append short git commit to bundles
 
 export default {
   input: 'src/main.js',
@@ -17,38 +22,50 @@ export default {
     sourcemap: !production,
     format: 'iife',
     name: 'app',
-    file: 'public/bundle-v' + version + '.js'
+    file: 'public/bundle-v' + version + '.js',
   },
   plugins: [
+    // json(),
     svelte({
       compilerOptions: {
-        dev: !production
-      }
+        dev: !production,
+      },
     }),
 
-    postcss({ extract: true, plugins: (production ? [purgecss({ content: ['./src/**/*.svelte', './rollup.config.js'], safelist: [/svelte-/] })] : []), minimize: production }),
-
+    postcss({
+      extract: true,
+      plugins: production
+        ? [
+            purgecss({
+              content: ['./src/**/*.svelte', './rollup.config.js'],
+              safelist: [/svelte-/],
+            }),
+          ]
+        : [],
+      minimize: production,
+    }),
+    
     commonjs(),
     nodePolyfills(),
     resolve({
       browser: true,
       dedupe: ['svelte'],
-      preferBuiltins: true
+      preferBuiltins: true,
     }),
 
     html({
       template: async ({ attributes, files, meta, publicPath, title }) => {
         const script = (files.js || [])
           .map(({ fileName }) => {
-            return `<script defer src='${fileName}'></script>`
+            return `<script defer src='${fileName}'></script>`;
           })
-          .join('\n')
+          .join('\n');
 
         const css = (files.css || [])
           .map(({ fileName }) => {
-            return `<link rel='stylesheet' href='${fileName}'>`
+            return `<link rel='stylesheet' href='${fileName}'>`;
           })
-          .join('\n')
+          .join('\n');
         return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,31 +83,31 @@ export default {
 
 <body>
 </body>
-</html>`
-      }
+</html>`;
+      },
     }),
     !production && serve(),
     !production && livereload('public'),
-    production && terser()
+    production && terser(),
   ],
   watch: {
-    clearScreen: false
-  }
-}
+    clearScreen: false,
+  },
+};
 
-function serve () {
-  let started = false
+function serve() {
+  let started = false;
 
   return {
-    writeBundle () {
+    writeBundle() {
       if (!started) {
-        started = true
+        started = true;
 
         require('child_process').spawn('npm', ['run', 'start', '--', '--dev'], {
           stdio: ['ignore', 'inherit', 'inherit'],
-          shell: true
-        })
+          shell: true,
+        });
       }
-    }
-  }
+    },
+  };
 }

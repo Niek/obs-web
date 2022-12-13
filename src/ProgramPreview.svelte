@@ -50,12 +50,12 @@
   })
 
   obs.on('CurrentPreviewSceneChanged', async (data) => {
-    console.log('CurrentPreviewSceneChanged', data.sceneName)
+    //console.log('CurrentPreviewSceneChanged', data.sceneName)
     previewScene = data.sceneName
   })
 
   obs.on('CurrentProgramSceneChanged', async (data) => {
-    console.log('CurrentProgramSceneChanged', data.sceneName)
+    //console.log('CurrentProgramSceneChanged', data.sceneName)
     programScene = data.sceneName
   })
 
@@ -106,6 +106,7 @@
     </div>
     <div class="column is-narrow">
       {#each transitions as transition}
+      
       <button class="button is-fullwidth is-info" style="margin-bottom: .5rem;"
         on:click={async () => {
           await sendCommand('SetCurrentSceneTransition', { transitionName: transition.transitionName })

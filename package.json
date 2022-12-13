@@ -4,7 +4,7 @@
   "scripts": {
     "build": "rollup -c --bundleConfigAsCjs",
     "dev": "rollup -c -w --bundleConfigAsCjs",
-    "start": "sirv public --host --port 5000",
+    "start": "sirv public --host --port 5001",
     "lint": "npx standard --fix && npx standard --parser svelte-eslint-parser --plugin svelte '**/*.svelte' --fix"
   },
   "devDependencies": {
@@ -30,6 +30,19 @@
     "svelte": "^3.54.0"
   },
   "dependencies": {
-    "sirv-cli": "^2.0.2"
+    "arg": "^5.0.2",
+    "config": "^3.3.8",
+    "express": "^4.18.2",
+    "fs-extra": "^11.1.0",
+    "googleapis": "^109.0.1",
+    "lien": "^3.3.1",
+    "open": "^8.4.0",
+    "r-json": "^1.2.10",
+    "sirv-cli": "^2.0.2",
+    "svelte-local-storage-store": "^0.3.2",
+    "svelte-types": "^0.0.7",
+    "util-promisify": "^3.0.0",
+    "util.promisify": "^1.1.1",
+    "youtube-api": "^3.0.1"
   }
 }
