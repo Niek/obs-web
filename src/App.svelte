@@ -245,7 +245,7 @@
     const data = await sendCommand('GetVersion')
     const version = data.obsWebSocketVersion || ''
     console.log('OBS-websocket version:', version)
-    if (compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) > 0) {
+    if (compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) < 0) {
       alert(
         'You are running an outdated OBS-websocket (version ' +
           version +
