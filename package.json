@@ -24,7 +24,7 @@
     "rollup-plugin-livereload": "^2.0.5",
     "rollup-plugin-polyfill-node": "^0.12.0",
     "rollup-plugin-postcss": "^4.0.2",
-    "rollup-plugin-svelte": "^7.1.0",
+    "rollup-plugin-svelte": "^7.1.2",
     "sass": "^1.58.0",
     "standard": "^17.0.0",
     "svelte": "^3.55.1"
