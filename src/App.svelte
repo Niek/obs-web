@@ -23,7 +23,7 @@
     mdiCameraOff,
     mdiCamera,
     mdiMotionPlayOutline,
-    mdiMotionPlay
+    mdiMotionPlay, mdiLock, mdiLockOpen
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
@@ -97,22 +97,31 @@
   let heartbeat = {}
   let heartbeatInterval
   let isFullScreen
-  let isStudioMode
-  let isSceneOnTop
+  let isStudioMode = true
+  let isSceneOnTop = true
   let isVirtualCamActive
   let isIconMode = window.localStorage.getItem('isIconMode') || false
-  let isReplaying
+  let isReplaying = false
   let editable = false
-  let address
+  let address = window.localStorage.getItem("address") || ""
   let password
   let scenes = []
   let replayError = ''
   let errorMessage = ''
   let imageFormat = 'jpg'
 
+  export let isSettingsLocked = window.localStorage.getItem('isSettingsLocked') || false
+  let isStreaming = false;
+  let isRecording = false;
+  let isOutputActive = false;
+
   $: isIconMode
     ? window.localStorage.setItem('isIconMode', 'true')
     : window.localStorage.removeItem('isIconMode')
+
+  $: isSettingsLocked
+    ? window.localStorage.setItem('isSettingsLocked', 'true')
+    : window.localStorage.removeItem('isSettingsLocked')
 
   function formatTime (secs) {
     secs = Math.round(secs / 1000)
@@ -167,11 +176,15 @@
   }
 
   async function startStream () {
-    await sendCommand('StartStream')
+    if (confirm("Confirm action: START STREAM?")) {
+      await sendCommand('StartStream')
+    }
   }
 
   async function stopStream () {
-    await sendCommand('StopStream')
+    if (confirm("Confirm action: STOP STREAM?")) {
+      await sendCommand('StopStream')
+    }
   }
 
   async function startRecording () {
@@ -198,8 +211,24 @@
     await sendCommand('ResumeRecord')
   }
 
+  async function toggleLock () {
+    let pw = ""
+    if (typeof password !== 'undefined') {pw = password}
+    if (!isSettingsLocked) {
+      isSettingsLocked = true
+    } else {
+      if (prompt("Confirm UNLOCK? Enter WS password") === pw) {
+        isSettingsLocked = false;
+      } else {
+        alert("Incorrect password")
+        isSettingsLocked = true
+      }
+    }
+  }
+
   async function connect () {
     address = address || 'ws://localhost:4455'
+    window.localStorage.setItem("address", address)
     if (address.indexOf('://') === -1) {
       const secure = location.protocol === 'https:' || address.endsWith(':443')
       address = secure ? 'wss://' : 'ws://' + address
@@ -267,6 +296,17 @@
       const recording = await sendCommand('GetRecordStatus')
       heartbeat = { stats, streaming, recording }
       // console.log(heartbeat);
+
+      isStreaming = heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive
+      isRecording = heartbeat && heartbeat.recording && heartbeat.recording.outputActive
+      isOutputActive = isStreaming || isRecording
+      try {
+        if (isOutputActive) {
+          document.getElementById("programPreview").classList.add("blink-bd-rw")
+        } else {
+          document.getElementById("programPreview").classList.remove("blink-bd-rw")
+        }
+      } catch {}
     }, 1000) // Heartbeat
     isStudioMode =
       (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false
@@ -301,13 +341,13 @@
 </script>
 
 <svelte:head>
-  <title>OBS-web remote control</title>
+  <title>NVX OBS-web</title>
 </svelte:head>
 
-<nav class="navbar is-primary" aria-label="main navigation">
+<nav class="navbar is-primaryNOT header-section" aria-label="main navigation">
   <div class="navbar-brand">
-    <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
-      <img src="favicon.png" alt="OBS-web" class="rotate" /></a
+    <a class="navbar-item is-size-4 has-text-weight-bold" class:util-bp50={isOutputActive} href="/">
+      <img src="favicon.png" alt="OBS-web" class="rotateNOT" /></a
     >
 
     <!-- svelte-ignore a11y-missing-attribute -->
@@ -326,28 +366,31 @@
   <div id="navmenu" class="navbar-menu">
     <div class="navbar-end">
       <div class="navbar-item">
-        <div class="buttons">
+        <div class="buttons" style="overflow-y: scroll">
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
-            <button class="button is-info is-light" disabled>
-              {#if heartbeat && heartbeat.stats}
-                {Math.round(heartbeat.stats.activeFps)} fps, {Math.round(
-                  heartbeat.stats.cpuUsage
-                )}% CPU, {heartbeat.stats.renderSkippedFrames} skipped frames
-              {:else}Connected{/if}
+            <button
+              class:is-light={!isSettingsLocked}
+              class="button is-link"
+              on:click={toggleLock}
+              title="Toggle Lock"
+            >
+              <span class="icon"><Icon path={isSettingsLocked ? mdiLock : mdiLockOpen} /></span>
             </button>
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button
-                class="button is-danger"
+                class="button is-danger blink-bg-rw"
+                disabled={isSettingsLocked}
                 on:click={stopStream}
                 title="Stop Stream"
               >
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
-                <span>{formatTime(heartbeat.streaming.outputDuration)}</span>
+                <!--<span>{formatTime(heartbeat.streaming.outputDuration)}</span>-->
               </button>
             {:else}
               <button
                 class="button is-danger is-light"
+                disabled={isSettingsLocked}
                 on:click={startStream}
                 title="Start Stream"
               >
@@ -355,9 +398,9 @@
               </button>
             {/if}
             {#if heartbeat && heartbeat.recording && heartbeat.recording.outputActive}
-              {#if heartbeat.recording.outputPaused}
+              <!--{#if heartbeat.recording.outputPaused}
                 <button
-                  class="button is-danger"
+                  class="button is-danger settings"
                   on:click={resumeRecording}
                   title="Resume Recording"
                 >
@@ -365,31 +408,33 @@
                 </button>
               {:else}
                 <button
-                  class="button is-success"
+                  class="button is-success settings"
                   on:click={pauseRecording}
                   title="Pause Recording"
                 >
                   <span class="icon"><Icon path={mdiPause} /></span>
                 </button>
-              {/if}
+              {/if}-->
               <button
-                class="button is-danger"
+                class="button is-danger blink-bg-rw"
+                disabled={isSettingsLocked}
                 on:click={stopRecording}
                 title="Stop Recording"
               >
                 <span class="icon"><Icon path={mdiStop} /></span>
-                <span>{formatTime(heartbeat.recording.outputDuration)}</span>
+                <!--<span>{formatTime(heartbeat.recording.outputDuration)}</span>-->
               </button>
             {:else}
               <button
                 class="button is-danger is-light"
+                disabled={isSettingsLocked}
                 on:click={startRecording}
                 title="Start Recording"
               >
                 <span class="icon"><Icon path={mdiRecord} /></span>
               </button>
             {/if}
-            {#if isVirtualCamActive}
+            <!--{#if isVirtualCamActive}
               <button
                 class="button is-danger"
                 on:click={stopVirtualCam}
@@ -459,11 +504,12 @@
                 />
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
-            </button>
+            </button>-->
             <ProfileSelect />
             <SceneCollectionSelect />
             <button
               class="button is-danger is-light"
+              disabled={isSettingsLocked}
               on:click={disconnect}
               title="Disconnect"
             >
@@ -475,7 +521,7 @@
             >
           {/if}
           <!-- svelte-ignore a11y-missing-attribute -->
-          <button
+          <!--<button
             class:is-light={!isFullScreen}
             class="button is-link"
             on:click={toggleFullScreen}
@@ -484,16 +530,51 @@
             <span class="icon">
               <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
             </span>
-          </button>
+          </button>-->
         </div>
       </div>
     </div>
   </div>
 </nav>
 
-<section class="section">
+<section class="section main-section">
   <div class="container">
     {#if connected}
+      {#if isOutputActive}
+        <div style="display: flex">
+          <div class="status img-display" style="width: 50%; margin-right: 1%">
+            <button class="obs-stats button" disabled>
+              {#if heartbeat && heartbeat.stats}
+                {Math.round(heartbeat.stats.activeFps)} fps, {Math.round(
+                heartbeat.stats.cpuUsage
+              )}% CPU, {heartbeat.stats.renderSkippedFrames} skipped frames
+              {:else}LOADING{/if}
+            </button>
+          </div>
+          <div class="status img-display" style="width: 50%; margin-left: 1%;">
+            {#if isRecording}
+              <button
+                class="button is-danger"
+                title="Recording Duration"
+              >
+                <span class="icon"><Icon path={mdiRecord}/></span>
+                <span>{formatTime(heartbeat.recording.outputDuration)}</span>
+              </button>
+            {/if}
+            {#if isStreaming}
+            <button
+              class="button is-danger"
+              title="Stream Duration"
+            >
+              <span class="icon"><Icon path={mdiAccessPointOff}/></span>
+              <span>{formatTime(heartbeat.streaming.outputDuration)}</span>
+            </button>
+          {/if}
+          </div>
+        </div>
+        <br>
+      {/if}
+
       {#if isSceneOnTop}
         <ProgramPreview {imageFormat} />
       {/if}
@@ -593,7 +674,7 @@
   </div>
 </section>
 
-<footer class="footer">
+<!--<footer class="footer">
   <div class="content has-text-centered">
     <p>
       <strong>OBS-web</strong>
@@ -604,4 +685,4 @@
       for source code.
     </p>
   </div>
-</footer>
+</footer>-->

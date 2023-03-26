@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte'
   import { obs, sendCommand } from './obs.js'
+  import isSettingsLocked from './App.svelte'
 
   let collections = []
   let currentCollection = ''
@@ -28,7 +29,7 @@
 </script>
 
 <div class="select" style="margin: 0 .5rem .5rem 0;">
-  <select bind:value={currentCollection} title="Change Collection" on:change={setCurrentCollection}>
+  <select bind:value={currentCollection} title="Change Collection" on:change={setCurrentCollection} disabled={isSettingsLocked}>
   {#each collections as collection}
     <option value={collection}>{collection}</option>
   {/each}

@@ -101,7 +101,7 @@
 
 <div class="columns is-centered is-vcentered has-text-centered">
   {#if isStudioMode}
-    <div class="column">
+    <div class="column img-display">
       <img bind:this={preview} class="has-background-dark" alt="Preview" />
     </div>
     <div class="column is-narrow">
@@ -115,7 +115,7 @@
       {/each}
     </div>
   {/if}
-  <div class="column">
+  <div class="column img-display" id="programPreview">
     <img bind:this={program} alt="Program"/>
   </div>
 </div>
