@@ -9,14 +9,14 @@
   },
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^5.0.0",
-    "@mdi/js": "^7.1.96",
+    "@mdi/js": "^7.2.96",
     "@rollup/plugin-commonjs": "^24.0.1",
     "@rollup/plugin-html": "^1.0.2",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.4.0",
     "bulma": "^0.9.4",
     "compare-versions": "^5.0.3",
-    "eslint-plugin-svelte": "^2.21.0",
+    "eslint-plugin-svelte": "^2.22.0",
     "mdi-svelte": "^1.1.2",
     "obs-websocket-js": "^5.0.1",
     "postcss": "^8.4.20",
@@ -25,9 +25,9 @@
     "rollup-plugin-polyfill-node": "^0.12.0",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svelte": "^7.1.4",
-    "sass": "^1.59.2",
+    "sass": "^1.59.3",
     "standard": "^17.0.0",
-    "svelte": "^3.56.0"
+    "svelte": "^3.57.0"
   },
   "dependencies": {
     "sirv-cli": "^2.0.2"
