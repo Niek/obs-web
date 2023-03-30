@@ -10,6 +10,10 @@
     const data = await sendCommand('GetProfileList')
     profiles = data.profiles || []
     currentProfile = data.currentProfileName || ''
+
+    document.getElementById("settings-lock").onclick = async () => {
+      console.log(document.getElementById("settings-lock").dataset["lock"])
+    }
   })
 
   obs.on('CurrentProfileChanged', async (data) => {

@@ -1,6 +1,10 @@
 <script>
   import { onMount, onDestroy } from 'svelte'
   import { obs, sendCommand } from './obs.js'
+  import {
+    mdiLock, mdiLockOpen
+  } from '@mdi/js'
+  import Icon from 'mdi-svelte'
 
   export let imageFormat = 'jpg'
 
@@ -13,6 +17,17 @@
   let screenshotInterval
   let transitions = []
   // let currentTransition = ''
+
+
+  let isScenesLocked = window.localStorage.getItem('isScenesLocked') || false
+
+  $: isScenesLocked
+    ? window.localStorage.setItem('isScenesLocked', 'true')
+    : window.localStorage.removeItem('isScenesLocked')
+
+  async function toggleScenesLock () {
+    isScenesLocked = !isScenesLocked
+  }
 
   onMount(async () => {
     let data
@@ -107,12 +122,21 @@
     <div class="column is-narrow">
       {#each transitions as transition}
       <button class="button is-fullwidth is-info" style="margin-bottom: .5rem;"
+        disabled={isScenesLocked}
         on:click={async () => {
           await sendCommand('SetCurrentSceneTransition', { transitionName: transition.transitionName })
           await sendCommand('TriggerStudioModeTransition')
         }}
         >{transition.transitionName}</button>
       {/each}
+      <button
+        class:is-light={!isScenesLocked}
+        class="button is-danger"
+        on:click={toggleScenesLock}
+        title="Toggle Scene Lock"
+      >
+        <span class="icon"><Icon path={isScenesLocked ? mdiLock : mdiLockOpen} /></span>
+      </button>
     </div>
   {/if}
   <div class="column img-display" id="programPreview">

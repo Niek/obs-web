@@ -1,4 +1,5 @@
 <script>
+  export let isSettingsLocked
   /* eslint-env browser */
   const OBS_WEBSOCKET_LATEST_VERSION = '5.0.1' // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
@@ -110,7 +111,7 @@
   let errorMessage = ''
   let imageFormat = 'jpg'
 
-  export let isSettingsLocked = window.localStorage.getItem('isSettingsLocked') || false
+  isSettingsLocked = window.localStorage.getItem('isSettingsLocked') || false
   let isStreaming = false;
   let isRecording = false;
   let isOutputActive = false;
@@ -347,8 +348,9 @@
 <nav class="navbar is-primaryNOT header-section" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item is-size-4 has-text-weight-bold" class:util-bp50={isOutputActive} href="/">
-      <img src="favicon.png" alt="OBS-web" class="rotateNOT" /></a
-    >
+      <img src="favicon.png" alt="OBS-web" class="rotateNOT" />
+      <span style="margin-left: 10%;">v1.1</span>
+    </a>
 
     <!-- svelte-ignore a11y-missing-attribute -->
     <button
@@ -371,7 +373,7 @@
           {#if connected}
             <button
               class:is-light={!isSettingsLocked}
-              class="button is-link"
+              class="button is-danger"
               on:click={toggleLock}
               title="Toggle Lock"
             >
