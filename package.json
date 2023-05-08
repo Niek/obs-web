@@ -27,7 +27,7 @@
     "rollup-plugin-svelte": "^7.1.4",
     "sass": "^1.62.1",
     "standard": "^17.0.0",
-    "svelte": "^3.58.0"
+    "svelte": "^3.59.0"
   },
   "dependencies": {
     "sirv-cli": "^2.0.2"
