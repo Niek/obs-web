@@ -16,7 +16,7 @@
     "@rollup/plugin-terser": "^0.4.1",
     "bulma": "^0.9.4",
     "compare-versions": "^5.0.3",
-    "eslint-plugin-svelte": "^2.27.3",
+    "eslint-plugin-svelte": "^2.28.0",
     "mdi-svelte": "^1.1.2",
     "obs-websocket-js": "^5.0.1",
     "postcss": "^8.4.23",
