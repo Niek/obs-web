@@ -10,7 +10,7 @@
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^5.0.0",
     "@mdi/js": "^7.2.96",
-    "@rollup/plugin-commonjs": "^24.1.0",
+    "@rollup/plugin-commonjs": "^25.0.0",
     "@rollup/plugin-html": "^1.0.2",
     "@rollup/plugin-node-resolve": "^15.0.2",
     "@rollup/plugin-terser": "^0.4.1",
