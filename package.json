@@ -16,7 +16,7 @@
     "@rollup/plugin-terser": "^0.4.1",
     "bulma": "^0.9.4",
     "compare-versions": "^5.0.3",
-    "eslint-plugin-svelte": "^2.31.1",
+    "eslint-plugin-svelte": "^2.30.0",
     "mdi-svelte": "^1.1.2",
     "obs-websocket-js": "^5.0.1",
     "postcss": "^8.4.24",
@@ -27,7 +27,7 @@
     "rollup-plugin-svelte": "^7.1.5",
     "sass": "^1.63.6",
     "standard": "^17.1.0",
-    "svelte": "^3.59.1"
+    "svelte": "^4.0.0"
   },
   "dependencies": {
     "sirv-cli": "^2.0.2"
