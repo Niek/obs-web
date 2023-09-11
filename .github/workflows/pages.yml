@@ -12,13 +12,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout v4
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: obs-websocket-4
           path: v4
 
       - name: Checkout v5 (master)
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: master
           path: v5
