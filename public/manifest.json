@@ -5,9 +5,9 @@
   "orientation": "landscape",
   "scope": "/",
   "start_url": "/",
-  "name": "OBS-web",
-  "short_name": "OBS-web",
-  "description": "OBS-web - The easiest way to control OBS remotely",
+  "name": "Nevadex's OBS-web",
+  "short_name": "OBS",
+  "description": "nevadex/OBS-web - OBS console remote control",
   "prefer_related_applications": false,
   "icons": [
     {

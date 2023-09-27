@@ -4,19 +4,12 @@ on:
   push:
     branches:
       - master
-      - obs-websocket-4
 
 jobs:
   deploy:
     name: Build and deploy GH pages
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout v4
-        uses: actions/checkout@v4
-        with:
-          ref: obs-websocket-4
-          path: v4
-
       - name: Checkout v5 (master)
         uses: actions/checkout@v4
         with:
@@ -28,18 +21,14 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Build v4
-        run: cd v4 && npm ci && npm run build
-
       - name: Build v5
         run: cd v5 && npm ci && npm run lint && npm run build
 
       - name: Make a single folder with v4 and v5
-        run: cp -r v5/public . && cp -r v4/public public/v4
+        run: cp -r v5/public .
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          cname: obs-web.niek.tv

@@ -4,6 +4,8 @@ const CACHE_NAME = 'offline'
 // Customize this with a different URL if needed.
 const cacheFiles = [
   '/',
+  'bundle-v0000000.js',
+  'bundle-v0000000.css',
   'service-worker.js',
   '/icon/icon-192x192.png',
   '/icon/icon-256x256.png',
