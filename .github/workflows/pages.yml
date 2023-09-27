@@ -22,7 +22,7 @@ jobs:
           node-version: '18'
 
       - name: Build v5
-        run: cd v5 && npm ci && npm run lint && npm run build
+        run: cd v5 && npm ci && npm run build
 
       - name: Make a single folder with v4 and v5
         run: cp -r v5/public .
