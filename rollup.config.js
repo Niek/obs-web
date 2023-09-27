@@ -9,7 +9,7 @@ import nodePolyfills from 'rollup-plugin-polyfill-node'
 import html from '@rollup/plugin-html'
 
 const production = !process.env.ROLLUP_WATCH
-const version = require('fs').existsSync('.git') ? String(require('child_process').execSync('git rev-parse --short HEAD')).trim() : 'static' // append short git commit to bundles
+//const version = require('fs').existsSync('.git') ? String(require('child_process').execSync('git rev-parse --short HEAD')).trim() : 'static' // append short git commit to bundles
 
 export default {
   input: 'src/main.js',
