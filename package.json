@@ -13,7 +13,7 @@
     "@rollup/plugin-commonjs": "^25.0.4",
     "@rollup/plugin-html": "^1.0.2",
     "@rollup/plugin-node-resolve": "^15.2.1",
-    "@rollup/plugin-terser": "^0.4.1",
+    "@rollup/plugin-terser": "^0.4.4",
     "bulma": "^0.9.4",
     "compare-versions": "^6.1.0",
     "eslint-plugin-svelte": "^2.33.2",
