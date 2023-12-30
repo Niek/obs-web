@@ -346,14 +346,14 @@
 </script>
 
 <svelte:head>
-  <title>NVX OBS-web</title>
+  <title>OBS-web</title>
 </svelte:head>
 
 <nav class="navbar is-primaryNOT header-section" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item is-size-4 has-text-weight-bold" class:util-bp50={isOutputActive} href="/">
       <img src="favicon.png" alt="OBS-web" class="rotateNOT" />
-      <span style="margin-left: 10%;">v1.1</span>
+      <span style="margin-left: 10%;">OBS-web</span>
     </a>
 
     <!-- svelte-ignore a11y-missing-attribute -->
