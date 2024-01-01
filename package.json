@@ -25,7 +25,7 @@
     "rollup-plugin-polyfill-node": "^0.13.0",
     "rollup-plugin-postcss": "^4.0.2",
     "rollup-plugin-svelte": "^7.1.6",
-    "sass": "^1.69.5",
+    "sass": "^1.69.6",
     "standard": "^17.1.0",
     "svelte": "^4.2.8"
   },
