@@ -306,9 +306,6 @@
 
 <nav class="navbar is-primary" aria-label="main navigation">
   <div class="navbar-brand">
-    <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
-      <img src="favicon.png" alt="OBS-web" class="rotate" /></a
-    >
 
     <!-- svelte-ignore a11y-missing-attribute -->
     <button
@@ -333,7 +330,8 @@
               {#if heartbeat && heartbeat.stats}
                 {Math.round(heartbeat.stats.activeFps)} fps, {Math.round(
                   heartbeat.stats.cpuUsage
-                )}% CPU, {heartbeat.stats.renderSkippedFrames} skipped frames
+                )}% CPU, {Math.round(heartbeat.stats.availableDiskSpace / 1024)}G DISK, 
+                {heartbeat.stats.renderSkippedFrames} DF
               {:else}Connected{/if}
             </button>
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
@@ -343,7 +341,7 @@
                 title="Stop Stream"
               >
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
-                <span>{formatTime(heartbeat.streaming.outputDuration)}</span>
+                <span>{formatTime(heartbeat.streaming.outputDuration)}, {heartbeat.streaming.outputSkippedFrames} DF</span>
               </button>
             {:else}
               <button
@@ -592,16 +590,3 @@
     {/if}
   </div>
 </section>
-
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p>
-      <strong>OBS-web</strong>
-      by
-      <a href="https://niekvandermaas.nl/">Niek van der Maas</a>
-      &mdash; see
-      <a href="https://github.com/Niek/obs-web">GitHub</a>
-      for source code.
-    </p>
-  </div>
-</footer>

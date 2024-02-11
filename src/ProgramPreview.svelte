@@ -31,7 +31,7 @@
     console.log('GetSceneTransitionList', data)
     transitions = data.transitions || []
     // currentTransition = data.currentSceneTransitionName || ''
-    screenshotInterval = setInterval(getScreenshot, 1000)
+    screenshotInterval = setInterval(getScreenshot, 500)
   })
 
   onDestroy(() => {
