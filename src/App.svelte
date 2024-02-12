@@ -29,12 +29,13 @@
   import { compareVersions } from 'compare-versions'
 
   import './style.scss'
-  import { obs, sendCommand } from './obs.js'
+  import { obs, eventSubscription, sendCommand } from './obs.js'
   import ProgramPreview from './ProgramPreview.svelte'
   import SceneSwitcher from './SceneSwitcher.svelte'
   import SourceSwitcher from './SourceSwitcher.svelte'
   import ProfileSelect from './ProfileSelect.svelte'
   import SceneCollectionSelect from './SceneCollectionSelect.svelte'
+  import Mixer from './Mixer.svelte'
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -209,7 +210,11 @@
     try {
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
         address,
-        password
+        password,
+        // {
+        //   eventSubscriptions: eventSubscription.InputVolumeMeters,
+        //   rpcVersion: 1
+        // }
       )
       console.log(
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
@@ -494,6 +499,7 @@
     {#if connected}
       {#if isSceneOnTop}
         <ProgramPreview {imageFormat} />
+        <Mixer />
       {/if}
       <SceneSwitcher
         bind:scenes
@@ -502,6 +508,7 @@
       />
       {#if !isSceneOnTop}
         <ProgramPreview {imageFormat} />
+        <Mixer />
       {/if}
       {#each scenes as scene}
         {#if scene.sceneName.indexOf('(switch)') > 0}

@@ -1,6 +1,8 @@
-import OBSWebSocket from 'obs-websocket-js'
+import OBSWebSocket, {EventSubscription} from 'obs-websocket-js'
 
 export const obs = new OBSWebSocket()
+
+export const eventSubscription = EventSubscription
 
 export async function sendCommand (command, params) {
   try {
