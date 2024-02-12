@@ -422,7 +422,7 @@
             </button>
             <button
               class:is-light={!editable}
-              class="button is-link"
+              class="button is-link is-hidden"
               title="Edit Scenes"
               on:click={() => (editable = !editable)}
             >
@@ -432,7 +432,7 @@
             </button>
             <button
               class:is-light={!isIconMode}
-              class="button is-link"
+              class="button is-link is-hidden"
               title="Show Scenes as Icons"
               on:click={() => (isIconMode = !isIconMode)}
             >
@@ -447,7 +447,7 @@
             <button
               class:is-light={!isReplaying}
               class:is-danger={replayError}
-              class="button is-link"
+              class="button is-link is-hidden"
               title="Toggle Replay Buffer"
               on:click={toggleReplay}
             >
