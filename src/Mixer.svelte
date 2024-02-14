@@ -2,7 +2,25 @@
   import { onMount, onDestroy } from 'svelte';
   import { obs, sendCommand } from './obs.js';
 
-  onMount(async () => {});
+  onMount(async () => {
+    sendCommand('GetInputList').then((data) => {
+      console.log('Mixer GetInputList', data);
+      for (let i = 0; i < data.inputs.length; i++) {
+        inputs[data.inputs[i].inputName] = data.inputs[i];
+        sendCommand('GetInputVolume', {
+          inputName: data.inputs[i].inputName,
+        }).then((vol) => {
+          console.log('Mixer GetInputVolume', vol);
+          if (inputs[data.inputs[i].inputName]) {
+            inputs[data.inputs[i].inputName] = {
+              ...inputs[data.inputs[i].inputName],
+              ...vol,
+            };
+          }
+        });
+      }
+    });
+  });
 
   onDestroy(() => {});
 
@@ -39,24 +57,6 @@
   //   if (data.oldSceneName === programScene) programScene = data.sceneName
   //   if (data.oldSceneName === previewScene) previewScene = data.sceneName
   // })
-
-  sendCommand('GetInputList').then((data) => {
-    console.log('Mixer GetInputList', data);
-    for (let i = 0; i < data.inputs.length; i++) {
-      inputs[data.inputs[i].inputName] = data.inputs[i];
-      sendCommand('GetInputVolume', {
-        inputName: data.inputs[i].inputName,
-      }).then((vol) => {
-        console.log('Mixer GetInputVolume', vol);
-        if (inputs[data.inputs[i].inputName]) {
-          inputs[data.inputs[i].inputName] = {
-            ...inputs[data.inputs[i].inputName],
-            ...vol,
-          };
-        }
-      });
-    }
-  });
 
   function updateVolume(e) {
     // console.log('updateVolume', e.target.name, e.target.value)
@@ -136,7 +136,7 @@
     width: 4rem;
     height: 10rem;
   }
-    /* patch bulma-slider bug on chrome */
+  /* patch bulma-slider bug on chrome */
   input[type='range'].slider[orient='vertical']::-webkit-slider-thumb {
     position: relative;
     left: 0.25rem;
