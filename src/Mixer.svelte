@@ -4,13 +4,13 @@
 
   onMount(async () => {
     sendCommand('GetInputList').then((data) => {
-      console.log('Mixer GetInputList', data);
+      // console.log('Mixer GetInputList', data);
       for (let i = 0; i < data.inputs.length; i++) {
         inputs[data.inputs[i].inputName] = data.inputs[i];
         sendCommand('GetInputVolume', {
           inputName: data.inputs[i].inputName,
         }).then((vol) => {
-          console.log('Mixer GetInputVolume', vol);
+          // console.log('Mixer GetInputVolume', vol);
           if (inputs[data.inputs[i].inputName]) {
             inputs[data.inputs[i].inputName] = {
               ...inputs[data.inputs[i].inputName],
