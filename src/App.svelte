@@ -36,6 +36,7 @@
   import ProfileSelect from './ProfileSelect.svelte'
   import SceneCollectionSelect from './SceneCollectionSelect.svelte'
   import Mixer from './Mixer.svelte'
+  import Status from './Status.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -309,7 +310,7 @@
   <title>OBS-web remote control</title>
 </svelte:head>
 
-<nav class="navbar is-primary" aria-label="main navigation">
+<nav class="navbar is-dark" aria-label="main navigation">
   <div class="navbar-brand">
 
     <!-- svelte-ignore a11y-missing-attribute -->
@@ -331,14 +332,6 @@
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
-            <button class="button is-info is-light" disabled>
-              {#if heartbeat && heartbeat.stats}
-                {Math.round(heartbeat.stats.activeFps)} fps, {Math.round(
-                  heartbeat.stats.cpuUsage
-                )}% CPU, {Math.round(heartbeat.stats.availableDiskSpace / 1024)}G DISK, 
-                {heartbeat.stats.renderSkippedFrames} DF
-              {:else}Connected{/if}
-            </button>
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button
                 class="button is-danger"
@@ -346,7 +339,7 @@
                 title="Stop Stream"
               >
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
-                <span>{formatTime(heartbeat.streaming.outputDuration)}, {heartbeat.streaming.outputSkippedFrames} DF</span>
+                <span>{formatTime(heartbeat.streaming.outputDuration)}</span>
               </button>
             {:else}
               <button
@@ -493,6 +486,14 @@
     </div>
   </div>
 </nav>
+
+{#if connected}
+<nav class="navbar is-light p-1" >
+  <div class="navbar-end">
+    <Status bind:heartbeat />
+  </div>
+</nav>
+{/if}
 
 <section class="section">
   <div class="container">
