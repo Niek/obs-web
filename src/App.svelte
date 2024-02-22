@@ -29,13 +29,15 @@
   import { compareVersions } from 'compare-versions'
 
   import './style.scss'
-  import { obs, sendCommand } from './obs.js'
+  import { obs, eventSubscription, sendCommand } from './obs.js'
   import FramerateSelect from './FramerateSelect.svelte'
   import ProgramPreview from './ProgramPreview.svelte'
   import SceneSwitcher from './SceneSwitcher.svelte'
   import SourceSwitcher from './SourceSwitcher.svelte'
   import ProfileSelect from './ProfileSelect.svelte'
   import SceneCollectionSelect from './SceneCollectionSelect.svelte'
+  import Mixer from './Mixer.svelte'
+  import Status from './Status.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -210,7 +212,11 @@
     try {
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
         address,
-        password
+        password,
+        // {
+        //   eventSubscriptions: eventSubscription.InputVolumeMeters,
+        //   rpcVersion: 1
+        // }
       )
       console.log(
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
@@ -305,11 +311,8 @@
   <title>OBS-web remote control</title>
 </svelte:head>
 
-<nav class="navbar is-primary" aria-label="main navigation">
+<nav class="navbar is-dark" aria-label="main navigation">
   <div class="navbar-brand">
-    <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
-      <img src="favicon.png" alt="OBS-web" class="rotate" /></a
-    >
 
     <!-- svelte-ignore a11y-missing-attribute -->
     <button
@@ -330,13 +333,6 @@
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
-            <button class="button is-info is-light" disabled>
-              {#if heartbeat && heartbeat.stats}
-                {Math.round(heartbeat.stats.activeFps)} fps, {Math.round(
-                  heartbeat.stats.cpuUsage
-                )}% CPU, {heartbeat.stats.renderSkippedFrames} skipped frames
-              {:else}Connected{/if}
-            </button>
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button
                 class="button is-danger"
@@ -425,7 +421,7 @@
             </button>
             <button
               class:is-light={!editable}
-              class="button is-link"
+              class="button is-link is-hidden"
               title="Edit Scenes"
               on:click={() => (editable = !editable)}
             >
@@ -435,7 +431,7 @@
             </button>
             <button
               class:is-light={!isIconMode}
-              class="button is-link"
+              class="button is-link is-hidden"
               title="Show Scenes as Icons"
               on:click={() => (isIconMode = !isIconMode)}
             >
@@ -450,7 +446,7 @@
             <button
               class:is-light={!isReplaying}
               class:is-danger={replayError}
-              class="button is-link"
+              class="button is-link is-hidden"
               title="Toggle Replay Buffer"
               on:click={toggleReplay}
             >
@@ -493,11 +489,20 @@
   </div>
 </nav>
 
+{#if connected}
+<nav class="navbar is-light p-1" >
+  <div class="navbar-end">
+    <Status bind:heartbeat />
+  </div>
+</nav>
+{/if}
+
 <section class="section">
   <div class="container">
     {#if connected}
       {#if isSceneOnTop}
         <ProgramPreview {imageFormat} />
+        <Mixer />
       {/if}
       <SceneSwitcher
         bind:scenes
@@ -506,6 +511,7 @@
       />
       {#if !isSceneOnTop}
         <ProgramPreview {imageFormat} />
+        <Mixer />
       {/if}
       {#each scenes as scene}
         {#if scene.sceneName.indexOf('(switch)') > 0}
@@ -594,16 +600,3 @@
     {/if}
   </div>
 </section>
-
-<footer class="footer">
-  <div class="content has-text-centered">
-    <p>
-      <strong>OBS-web</strong>
-      by
-      <a href="https://niekvandermaas.nl/">Niek van der Maas</a>
-      &mdash; see
-      <a href="https://github.com/Niek/obs-web">GitHub</a>
-      for source code.
-    </p>
-  </div>
-</footer>

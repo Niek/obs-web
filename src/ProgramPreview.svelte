@@ -31,7 +31,7 @@
     console.log('GetSceneTransitionList', data)
     transitions = data.transitions || []
     // currentTransition = data.currentSceneTransitionName || ''
-    screenshotInterval = setInterval(getScreenshot, 1000)
+    screenshotInterval = setInterval(getScreenshot, 500)
   })
 
   onDestroy(() => {
@@ -80,7 +80,6 @@
     })
     if (data && data.imageData && program) {
       program.src = data.imageData
-      program.className = ''
     }
 
     if (isStudioMode) {
@@ -102,7 +101,7 @@
 <div class="columns is-centered is-vcentered has-text-centered">
   {#if isStudioMode}
     <div class="column">
-      <img bind:this={preview} class="has-background-dark" alt="Preview" />
+      <img bind:this={preview} class="has-background-black" alt="Preview" />
     </div>
     <div class="column is-narrow">
       {#each transitions as transition}
@@ -116,6 +115,6 @@
     </div>
   {/if}
   <div class="column">
-    <img bind:this={program} alt="Program"/>
+    <img bind:this={program} class="has-background-black" alt="Program"/>
   </div>
 </div>
