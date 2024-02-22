@@ -30,6 +30,7 @@
 
   import './style.scss'
   import { obs, eventSubscription, sendCommand } from './obs.js'
+  import FramerateSelect from './FramerateSelect.svelte'
   import ProgramPreview from './ProgramPreview.svelte'
   import SceneSwitcher from './SceneSwitcher.svelte'
   import SourceSwitcher from './SourceSwitcher.svelte'
@@ -456,6 +457,7 @@
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
             </button>
+            <FramerateSelect />
             <ProfileSelect />
             <SceneCollectionSelect />
             <button
