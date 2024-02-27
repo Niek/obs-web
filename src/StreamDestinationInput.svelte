@@ -4,13 +4,7 @@
 
   let showMenu = false;
   let useAuthentication = false;
-  let streamServiceSettings = {
-    server: '',
-    key: '',
-    use_auth: false,
-    username: '',
-    password: '',
-  };
+  let streamServiceSettings = {};
 
   onMount(async function () {
     const data = await sendCommand('GetStreamServiceSettings');
