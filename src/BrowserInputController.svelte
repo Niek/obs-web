@@ -55,21 +55,10 @@
     <div class="dropdown-content">
       <div class="dropdown-item">
         <p class="mb-2">Overlay URL</p>
-        <input
-          class="input"
-          type="text"
-          placeholder="Server"
+        <textarea
+          class="textarea has-fixed-size"
+          placeholder="Overlay URL"
           bind:value={browserInputSetting.url}
-        />
-      </div>
-      <hr class="dropdown-divider" />
-      <div class="dropdown-item">
-        <p class="mb-2">Height</p>
-        <input
-          class="input"
-          type="text"
-          placeholder="Height(in pixels)"
-          bind:value={browserInputSetting.height}
         />
       </div>
       <hr class="dropdown-divider" />
@@ -82,6 +71,16 @@
           bind:value={browserInputSetting.width}
         />
       </div>
+      <div class="dropdown-item">
+        <p class="mb-2">Height</p>
+        <input
+          class="input"
+          type="text"
+          placeholder="Height(in pixels)"
+          bind:value={browserInputSetting.height}
+        />
+      </div>
+
       <div class="dropdown-item dropdown-item-right">
         <button class="button is-danger" on:click={setBrowserInputSetting}>保存</button
         >

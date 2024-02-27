@@ -55,10 +55,10 @@
     <div class="dropdown-content">
       <div class="dropdown-item">
         <p class="mb-2">Server</p>
-        <input
-          class="input"
+        <textarea
+          class="textarea has-fixed-size"
           type="text"
-          placeholder="Server"
+          placeholder="Destination URL"
           bind:value={streamServiceSettings.server}
         />
       </div>
