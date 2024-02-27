@@ -330,6 +330,14 @@
   </div>
 
   <div id="navmenu" class="navbar-menu">
+    <div class="navbar-start">
+      {#if connected}
+        <div class="navbar-item">
+          <StreamDestinationInput />
+          <BrowserInputController />
+        </div>
+      {/if}
+    </div>
     <div class="navbar-end">
       <div class="navbar-item">
         <div class="buttons">
@@ -491,21 +499,10 @@
   </div>
 </nav>
 
-{#if connected}
-<nav class="navbar is-light p-1" >
-  <div class="navbar-start">
-    <StreamDestinationInput />
-    <BrowserInputController />
-  </div>
-  <div class="navbar-end">
-    <Status bind:heartbeat />
-  </div>
-</nav>
-{/if}
-
 <section class="section">
   <div class="container">
     {#if connected}
+    <Status bind:heartbeat />
       {#if isSceneOnTop}
         <ProgramPreview {imageFormat} />
         <Mixer />

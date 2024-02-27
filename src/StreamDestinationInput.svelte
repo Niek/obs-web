@@ -1,6 +1,10 @@
 <script>
   import { onMount } from 'svelte';
   import { sendCommand } from './obs.js';
+  import {
+    mdiEarthArrowUp
+  } from '@mdi/js'
+  import Icon from 'mdi-svelte'
 
   let showMenu = false;
   let useAuthentication = false;
@@ -39,12 +43,12 @@
 <div class="dropdown mx-1 my-1" class:is-active={showMenu}>
   <div class="dropdown-trigger">
     <button
-      class="button is-info"
+      class="button is-warning"
       aria-haspopup="true"
       aria-controls="streaming-setting-dropdown-menu"
       on:click={toggleShowMenu}
     >
-      <span>Streaming Destination Settings</span>
+      <span class="icon"><Icon path={mdiEarthArrowUp} /></span>
     </button>
   </div>
   <div class="dropdown-menu" id="streaming-setting-dropdown-menu" role="menu">

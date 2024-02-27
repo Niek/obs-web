@@ -2,6 +2,11 @@
   import { onMount } from 'svelte';
   import { sendCommand } from './obs.js';
 
+  import {
+    mdiSubtitles
+  } from '@mdi/js'
+  import Icon from 'mdi-svelte'
+
   let showMenu = false;
   let browserInputSetting = {};
 
@@ -38,12 +43,12 @@
 <div class="dropdown mx-1 my-1" class:is-active={showMenu}>
   <div class="dropdown-trigger">
     <button
-      class="button is-info"
+      class="button is-warning"
       aria-haspopup="true"
       aria-controls="browser-input-setting-dropdown-menu"
       on:click={toggleShowMenu}
     >
-      <span>Browser Input Settings</span>
+      <span class="icon"><Icon path={mdiSubtitles} /></span>
     </button>
   </div>
   <div class="dropdown-menu" id="browser-input-setting-dropdown-menu" role="menu">
