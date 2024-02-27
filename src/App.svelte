@@ -39,6 +39,7 @@
   import Mixer from './Mixer.svelte'
   import Status from './Status.svelte';
   import StreamDestinationInput from './StreamDestinationInput.svelte';
+  import BrowserInputController from './BrowserInputController.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -494,6 +495,7 @@
 <nav class="navbar is-light p-1" >
   <div class="navbar-start">
     <StreamDestinationInput />
+    <BrowserInputController />
   </div>
   <div class="navbar-end">
     <Status bind:heartbeat />
