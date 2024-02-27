@@ -529,41 +529,7 @@
         {/if}
       {/each}
     {:else}
-      <h1 class="subtitle">
-        Welcome to
-        <strong>OBS-web</strong>
-        - the easiest way to control
-        <a href="https://obsproject.com/" target="_blank" rel="noreferrer"
-          >OBS</a
-        >
-        remotely!
-      </h1>
-
-      {#if document.location.protocol === 'https:'}
-        <div class="notification is-danger">
-          You are checking this page on a secure HTTPS connection. That's great,
-          but it means you can
-          <strong>only</strong>
-          connect to WSS (secure websocket) addresses, for example OBS exposed with
-          <a href="https://ngrok.com/">ngrok</a>
-          or
-          <a href="https://pagekite.net/">pagekite</a>
-          . If you want to connect to a local OBS instance,
-          <strong>
-            <a
-              href="http://{document.location.hostname}{document.location.port
-                ? ':' + document.location.port
-                : ''}{document.location.pathname}"
-            >
-              please click here to load the non-secure version of this page
-            </a>
-          </strong>
-          .
-        </div>
-      {/if}
-
-      <p>To get started, enter your OBS host:port below and click "connect".</p>
-
+      <p>Select OBS Instance</p>
       <form on:submit|preventDefault={connect}>
         <div class="field is-grouped">
           <p class="control is-expanded">
@@ -589,20 +555,6 @@
           </p>
         </div>
       </form>
-      <p class="help">
-        Make sure that you use <a
-          href="https://github.com/obsproject/obs-studio/releases">OBS v28+</a
-        >
-        or install the
-        <a
-          href="https://github.com/obsproject/obs-websocket/releases/tag/{OBS_WEBSOCKET_LATEST_VERSION}"
-          target="_blank"
-          rel="noreferrer"
-          >obs-websocket {OBS_WEBSOCKET_LATEST_VERSION} plugin</a
-        >
-        for v27. If you use an older version of OBS, see the
-        <a href="/v4/">archived OBS-web v4</a> page.
-      </p>
     {/if}
   </div>
 </section>
