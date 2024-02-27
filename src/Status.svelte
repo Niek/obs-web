@@ -20,7 +20,7 @@
       if (recentOutputBytes.length > 5) {
         recentOutputBytes.shift();
       }
-      streamingMbps = (recentOutputBytes[recentOutputBytes.length - 1] - recentOutputBytes[0]) * 8 / 1000 / 1000 / recentOutputBytes.length;
+      streamingMbps = (recentOutputBytes[recentOutputBytes.length - 1] - recentOutputBytes[0]) * 8 / 1000 / 1000 / (recentOutputBytes.length - 1);
     }
   }
 
