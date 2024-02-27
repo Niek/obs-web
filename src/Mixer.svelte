@@ -2,18 +2,21 @@
   import { onMount, onDestroy } from 'svelte';
   import { obs, sendCommand } from './obs.js';
 
+
   onMount(async () => {
     sendCommand('GetInputList').then((data) => {
       // console.log('Mixer GetInputList', data);
       for (let i = 0; i < data.inputs.length; i++) {
-        inputs[data.inputs[i].inputName] = data.inputs[i];
+        if (data.inputs[i].inputKind === 'Mic/Aux') {
+          data.inputs[i].inputName = 'Mic';
+        }
         sendCommand('GetInputVolume', {
           inputName: data.inputs[i].inputName,
         }).then((vol) => {
           // console.log('Mixer GetInputVolume', vol);
-          if (inputs[data.inputs[i].inputName]) {
+          if ( "inputVolumeDb" in vol) {;
             inputs[data.inputs[i].inputName] = {
-              ...inputs[data.inputs[i].inputName],
+              ...data.inputs[i],
               ...vol,
             };
           }
