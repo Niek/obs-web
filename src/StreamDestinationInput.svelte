@@ -32,6 +32,7 @@
     } catch (error) {
       alert('ERROR: Update streaming server setting failed.');
     }
+    showMenu = false
   }
 </script>
 
