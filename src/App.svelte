@@ -38,6 +38,7 @@
   import SceneCollectionSelect from './SceneCollectionSelect.svelte'
   import Mixer from './Mixer.svelte'
   import Status from './Status.svelte';
+  import StreamDestinationInput from './StreamDestinationInput.svelte';
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -491,6 +492,9 @@
 
 {#if connected}
 <nav class="navbar is-light p-1" >
+  <div class="navbar-start">
+    <StreamDestinationInput />
+  </div>
   <div class="navbar-end">
     <Status bind:heartbeat />
   </div>
