@@ -118,6 +118,7 @@
   }
 </script>
 
+<div class="column mt-5">
 <ol>
   {#each items as item}
   <li>
@@ -130,7 +131,8 @@
   </li>
   {/each}
 </ol>
-<button class="button" on:click={loadMissingScreenshots}>Load missing thumbnails</button>
+<button class="button is-info" on:click={loadMissingScreenshots}>Load missing thumbnails</button>
+</div>
 
 <style>
   ol {
@@ -139,7 +141,7 @@
     flex-wrap: wrap;
     align-content: space-between;
     gap: .5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
   }
   li {
     max-width: 192px;
