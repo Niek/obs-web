@@ -81,9 +81,9 @@
 <ol>
   {#if inputs && Object.keys(inputs).length > 0}
     {#each Object.keys(inputs) as iname}
-      <li class="box is-marginless">
+      <li class="box is-marginless has-background-dark">
         <div class="is-relative">
-          <span class="tag is-white is-small mixer-label"
+          <span class="tag is-dark is-small mixer-label"
             >{inputs[iname].inputName}</span
           >
           <input
@@ -99,24 +99,24 @@
           />
           <div class="buttons are-small mixer-buttons">
             <button
-              class="button is-light"
+              class="button is-white is-outlined"
               on:click={() => updateVolumeDelta(inputs[iname].inputName, 1)}
               >+1</button
             >
             <button
-              class="button is-light"
+              class="button is-white is-outlined"
               on:click={() => updateVolumeDelta(inputs[iname].inputName, 0)}
               >=0</button
             >
             <button
-              class="button is-light"
+              class="button is-white is-outlined"
               on:click={() => updateVolumeDelta(inputs[iname].inputName, -1)}
               >-1</button
             >
           </div>
         </div>
         <span
-          class="tag is-info is-small is-light is-marginless is-centered mixer-value"
+          class="tag is-info is-small is-marginless is-centered has-background-dark mixer-value"
           >{typeof inputs[iname].inputVolumeDb === 'number'
             ? inputs[iname].inputVolumeDb.toFixed(1)
             : inputs[iname].inputVolumeDb} dB

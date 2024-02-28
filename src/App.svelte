@@ -499,7 +499,7 @@
   </div>
 </nav>
 
-<section class="section">
+<section class="section has-background-black-ter">
   <div class="container">
     {#if connected}
     <Status bind:heartbeat />
