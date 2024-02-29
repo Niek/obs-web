@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import { obs, sendCommand } from './obs.js'
 
+  export let uiLock = false;
   let profiles = []
   let currentProfile = ''
 
@@ -25,7 +26,7 @@
   }
 </script>
 
-<div class="select" style="margin: 0 .5rem .5rem 0;">
+<div class="select {uiLock ? 'is-locked' : ''}" style="margin: 0 .5rem .5rem 0;">
   <select bind:value={currentProfile} title="Change Profile" on:change={setCurrentProfile}>
   {#each profiles as profile}
     <option value={profile}>{profile}</option>
