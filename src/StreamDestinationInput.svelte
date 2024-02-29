@@ -44,6 +44,7 @@
   <div class="dropdown-trigger">
     <button
       class="button is-warning"
+      class:is-light={showMenu}
       aria-haspopup="true"
       aria-controls="streaming-setting-dropdown-menu"
       on:click={toggleShowMenu}
