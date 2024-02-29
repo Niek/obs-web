@@ -41,10 +41,10 @@
   }
 </script>
 
-<div class="dropdown mx-1 my-1 {showMenu ? 'is-active' : ''} {uiLock ? 'is-locked' : ''}">
+<div class="dropdown is-right {showMenu ? 'is-active' : ''} {uiLock ? 'is-locked' : ''}">
   <div class="dropdown-trigger">
     <button
-      class="button is-warning"
+      class="button is-warning mr-2"
       class:is-light={showMenu}
       aria-haspopup="true"
       aria-controls="streaming-setting-dropdown-menu"

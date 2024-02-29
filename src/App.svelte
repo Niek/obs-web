@@ -349,8 +349,74 @@
     <div class="navbar-start">
       {#if connected}
         <div class="navbar-item">
-          <StreamDestinationInput uiLock={isLocked}/>
-          <BrowserInputController uiLock={isLocked}/>
+          <div class="buttons">
+            <!-- svelte-ignore a11y-missing-attribute -->
+            <button
+              class:is-light={!isFullScreen}
+              class="button is-link"
+              on:click={toggleFullScreen}
+              title="Toggle Fullscreen"
+              >
+              <span class="icon">
+                <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
+              </span>
+            </button>
+            <button
+              class:is-light={!isStudioMode}
+              class="button is-link"
+              on:click={toggleStudioMode}
+              title="Toggle Studio Mode"
+            >
+              <span class="icon"><Icon path={mdiBorderVertical} /></span>
+            </button>
+            <button
+              class:is-light={!isSceneOnTop}
+              class="button is-link"
+              on:click={switchSceneView}
+              title="Show Scene on Top"
+            >
+              <span class="icon"><Icon path={mdiArrowSplitHorizontal} /></span>
+            </button>
+            <button
+              class:is-light={!editable}
+              class="button is-link is-hidden"
+              title="Edit Scenes"
+              on:click={() => (editable = !editable)}
+            >
+              <span class="icon">
+                <Icon path={editable ? mdiImageEditOutline : mdiImageEdit} />
+              </span>
+            </button>
+            <button
+              class:is-light={!isIconMode}
+              class="button is-link is-hidden"
+              title="Show Scenes as Icons"
+              on:click={() => (isIconMode = !isIconMode)}
+            >
+              <span class="icon">
+                <Icon
+                  path={isIconMode
+                    ? mdiSquareRoundedBadgeOutline
+                    : mdiSquareRoundedBadge}
+                />
+              </span>
+            </button>
+            <button
+              class:is-light={!isReplaying}
+              class:is-danger={replayError}
+              class="button is-link is-hidden"
+              title="Toggle Replay Buffer"
+              on:click={toggleReplay}
+            >
+              <span class="icon">
+                <Icon
+                  path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay}
+                />
+              </span>
+              {#if replayError}<span>{replayError}</span>{/if}
+            </button>
+            <BrowserInputController uiLock={isLocked}/>
+          </div>
         </div>
       {/if}
     </div>
@@ -359,6 +425,10 @@
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
+            <ProfileSelect uiLock={isLocked}/>
+            <FramerateSelect uiLock={isLocked}/>
+            <SceneCollectionSelect uiLock={isLocked}/>
+            <StreamDestinationInput uiLock={isLocked}/>
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button
                 class="button is-danger"
@@ -430,63 +500,6 @@
               </button>
             {/if}
             <button
-              class:is-light={!isStudioMode}
-              class="button is-link"
-              on:click={toggleStudioMode}
-              title="Toggle Studio Mode"
-            >
-              <span class="icon"><Icon path={mdiBorderVertical} /></span>
-            </button>
-            <button
-              class:is-light={!isSceneOnTop}
-              class="button is-link"
-              on:click={switchSceneView}
-              title="Show Scene on Top"
-            >
-              <span class="icon"><Icon path={mdiArrowSplitHorizontal} /></span>
-            </button>
-            <button
-              class:is-light={!editable}
-              class="button is-link is-hidden"
-              title="Edit Scenes"
-              on:click={() => (editable = !editable)}
-            >
-              <span class="icon">
-                <Icon path={editable ? mdiImageEditOutline : mdiImageEdit} />
-              </span>
-            </button>
-            <button
-              class:is-light={!isIconMode}
-              class="button is-link is-hidden"
-              title="Show Scenes as Icons"
-              on:click={() => (isIconMode = !isIconMode)}
-            >
-              <span class="icon">
-                <Icon
-                  path={isIconMode
-                    ? mdiSquareRoundedBadgeOutline
-                    : mdiSquareRoundedBadge}
-                />
-              </span>
-            </button>
-            <button
-              class:is-light={!isReplaying}
-              class:is-danger={replayError}
-              class="button is-link is-hidden"
-              title="Toggle Replay Buffer"
-              on:click={toggleReplay}
-            >
-              <span class="icon">
-                <Icon
-                  path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay}
-                />
-              </span>
-              {#if replayError}<span>{replayError}</span>{/if}
-            </button>
-            <ProfileSelect uiLock={isLocked}/>
-            <FramerateSelect uiLock={isLocked}/>
-            <SceneCollectionSelect uiLock={isLocked}/>
-            <button
               class="button is-danger is-light {isLocked ? 'is-locked' : ''}"
               on:click={disconnect}
               title="Disconnect"
@@ -498,17 +511,6 @@
               >{errorMessage || 'Disconnected'}</button
             >
           {/if}
-          <!-- svelte-ignore a11y-missing-attribute -->
-          <button
-            class:is-light={!isFullScreen}
-            class="button is-link"
-            on:click={toggleFullScreen}
-            title="Toggle Fullscreen"
-          >
-            <span class="icon">
-              <Icon path={isFullScreen ? mdiFullscreenExit : mdiFullscreen} />
-            </span>
-          </button>
         </div>
       </div>
     </div>
