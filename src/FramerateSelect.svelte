@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { sendCommand } from './obs.js';
 
+  export let uiLock = false;
   let currentFramerate = '';
   let framerateData = [
     { fps: '23.976', fpsNumerator: 24000, fpsDenominator: 1001 }, // 24 FPS (Film Standard, 23.976 for NTSC compatibility)
@@ -34,7 +35,7 @@
   }
 </script>
 
-<div class="select" style="margin: 0 .5rem .5rem 0;">
+<div class="select {uiLock ? 'is-locked' : ''}" style="margin: 0 .5rem .5rem 0;">
   <select
     bind:value={currentFramerate}
     title="Change FPS"

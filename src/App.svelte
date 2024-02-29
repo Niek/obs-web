@@ -29,7 +29,7 @@
   import { compareVersions } from 'compare-versions'
 
   import './style.scss'
-  import { obs, eventSubscription, sendCommand } from './obs.js'
+  import { obs, sendCommand } from './obs.js'
   import FramerateSelect from './FramerateSelect.svelte'
   import ProgramPreview from './ProgramPreview.svelte'
   import SceneSwitcher from './SceneSwitcher.svelte'
@@ -107,6 +107,8 @@
   let isVirtualCamActive
   let isIconMode = window.localStorage.getItem('isIconMode') || false
   let isReplaying
+  let isStreaming
+  let isRecording
   let editable = false
   let address
   let password
@@ -114,6 +116,7 @@
   let replayError = ''
   let errorMessage = ''
   let imageFormat = 'jpg'
+  let isLocked = false
 
   $: isIconMode
     ? window.localStorage.setItem('isIconMode', 'true')
@@ -189,6 +192,7 @@
 
   async function startVirtualCam () {
     await sendCommand('StartVirtualCam')
+
   }
 
   async function stopVirtualCam () {
@@ -235,7 +239,6 @@
     connected = false
     errorMessage = 'Disconnected'
   }
-
   // OBS events
   obs.on('ConnectionClosed', () => {
     connected = false
@@ -275,7 +278,7 @@
       const streaming = await sendCommand('GetStreamStatus')
       const recording = await sendCommand('GetRecordStatus')
       heartbeat = { stats, streaming, recording }
-      // console.log(heartbeat);
+      //console.log(heartbeat);
     }, 1000) // Heartbeat
     isStudioMode =
       (await sendCommand('GetStudioModeEnabled')).studioModeEnabled || false
@@ -296,6 +299,7 @@
   obs.on('VirtualcamStateChanged', async (data) => {
     console.log('VirtualcamStateChanged', data.outputActive)
     isVirtualCamActive = data && data.outputActive
+    isLocked = isVirtualCamActive
   })
 
   obs.on('StudioModeStateChanged', async (data) => {
@@ -306,6 +310,18 @@
   obs.on('ReplayBufferStateChanged', async (data) => {
     console.log('ReplayBufferStateChanged', data)
     isReplaying = data && data.outputActive
+  })
+
+  obs.on('StreamStateChanged', async (data) => {
+    console.log('StreamStateChanged', data)
+    isStreaming = data && data.outputActive
+    isLocked = isStreaming
+  })
+
+  obs.on('RecordStateChanged', async (data) => {
+    console.log('ReplayBufferStateChanged', data)
+    isRecording = data && data.outputActive
+    isLocked = isRecording
   })
 </script>
 
@@ -333,8 +349,8 @@
     <div class="navbar-start">
       {#if connected}
         <div class="navbar-item">
-          <StreamDestinationInput />
-          <BrowserInputController />
+          <StreamDestinationInput uiLock={isLocked}/>
+          <BrowserInputController uiLock={isLocked}/>
         </div>
       {/if}
     </div>
@@ -354,7 +370,7 @@
               </button>
             {:else}
               <button
-                class="button is-danger is-light"
+                class="button is-danger is-light {isLocked ? 'is-locked' : ''}"
                 on:click={startStream}
                 title="Start Stream"
               >
@@ -389,7 +405,7 @@
               </button>
             {:else}
               <button
-                class="button is-danger is-light"
+                class="button is-danger is-light {isLocked ? 'is-locked' : ''}"
                 on:click={startRecording}
                 title="Start Recording"
               >
@@ -406,7 +422,7 @@
               </button>
             {:else}
               <button
-                class="button is-danger is-light"
+                class="button is-danger is-light {isLocked ? 'is-locked' : ''}"
                 on:click={startVirtualCam}
                 title="Start Virtual Webcam"
               >
@@ -467,11 +483,11 @@
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
             </button>
-            <FramerateSelect />
-            <ProfileSelect />
-            <SceneCollectionSelect />
+            <FramerateSelect uiLock={isLocked}/>
+            <ProfileSelect uiLock={isLocked}/>
+            <SceneCollectionSelect uiLock={isLocked}/>
             <button
-              class="button is-danger is-light"
+              class="button is-danger is-light {isLocked ? 'is-locked' : ''}"
               on:click={disconnect}
               title="Disconnect"
             >

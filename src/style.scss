@@ -22,3 +22,8 @@ $dropdown-menu-min-width: 24rem;
 .rotate {
   animation: rotating 10s linear infinite;
 }
+
+.is-locked {
+  opacity: 50%;
+  pointer-events: none;
+}
