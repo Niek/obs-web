@@ -415,7 +415,7 @@
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
             </button>
-            <BrowserInputController uiLock={isLocked}/>
+            <BrowserInputController />
           </div>
         </div>
       {/if}

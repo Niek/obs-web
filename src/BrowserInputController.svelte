@@ -7,7 +7,6 @@
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
 
-  export let uiLock = false;
   let showMenu = false;
   let browserInputSetting = {};
 
@@ -41,7 +40,7 @@
   }
 </script>
 
-<div class="dropdown {showMenu ? 'is-active' : ''} {uiLock ? 'is-locked' : ''}">
+<div class="dropdown {showMenu ? 'is-active' : ''}">
   <div class="dropdown-trigger">
     <button
       class="button is-warning"
