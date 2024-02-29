@@ -483,8 +483,8 @@
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
             </button>
-            <FramerateSelect uiLock={isLocked}/>
             <ProfileSelect uiLock={isLocked}/>
+            <FramerateSelect uiLock={isLocked}/>
             <SceneCollectionSelect uiLock={isLocked}/>
             <button
               class="button is-danger is-light {isLocked ? 'is-locked' : ''}"
