@@ -415,7 +415,6 @@
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
             </button>
-            <BrowserInputController />
           </div>
         </div>
       {/if}
@@ -425,6 +424,7 @@
         <div class="buttons">
           <!-- svelte-ignore a11y-missing-attribute -->
           {#if connected}
+            <BrowserInputController />
             <ProfileSelect uiLock={isLocked}/>
             <FramerateSelect uiLock={isLocked}/>
             <SceneCollectionSelect uiLock={isLocked}/>
