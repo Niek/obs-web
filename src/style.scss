@@ -4,10 +4,12 @@ $footer-padding: 3rem 1.5rem;
 
 $family-primary: monospace;
 $dropdown-menu-min-width: 24rem;
+$section-padding: 0.5rem 0.5rem;
+$section-padding-desktop: 0.5rem 0.5rem;
+
 
 @import "~bulma/bulma.sass";
 @import "~bulma-slider/src/sass/index.sass";
-
 
 
 @keyframes rotating {

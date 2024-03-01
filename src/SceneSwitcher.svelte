@@ -130,7 +130,7 @@
     flex-wrap: wrap;
     justify-content: space-between;
     gap: .5rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
   }
   ol.column {
     flex-direction: column;
