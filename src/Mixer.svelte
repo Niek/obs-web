@@ -7,8 +7,9 @@
     sendCommand('GetInputList').then((data) => {
       // console.log('Mixer GetInputList', data);
       for (let i = 0; i < data.inputs.length; i++) {
-        if (data.inputs[i].inputKind === 'Mic/Aux') {
-          data.inputs[i].inputName = 'Mic';
+        if (data.inputs[i].inputName.endsWith('@ah')) {
+          // hide if input has @ah suffix
+          continue;
         }
         sendCommand('GetInputVolume', {
           inputName: data.inputs[i].inputName,
@@ -80,7 +81,7 @@
 
 <ol>
   {#if inputs && Object.keys(inputs).length > 0}
-    {#each Object.keys(inputs) as iname}
+    {#each Object.keys(inputs).sort() as iname}
       <li class="box is-marginless has-background-dark">
         <div class="is-relative">
           <span class="tag is-dark is-small mixer-label"
