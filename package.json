@@ -14,7 +14,7 @@
     "@rollup/plugin-html": "^1.0.3",
     "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
-    "bulma": "^0.9.4",
+    "bulma": "^1.0.1",
     "compare-versions": "^6.1.0",
     "eslint-plugin-svelte": "^2.39.4",
     "mdi-svelte": "^1.1.2",
