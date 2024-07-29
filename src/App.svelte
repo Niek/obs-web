@@ -98,7 +98,7 @@
   let heartbeatInterval
   let isFullScreen
   let isStudioMode
-  let isSceneOnTop
+  let isSceneOnTop = window.localStorage.getItem('isSceneOnTop') || false
   let isVirtualCamActive
   let isIconMode = window.localStorage.getItem('isIconMode') || false
   let isReplaying
@@ -109,6 +109,10 @@
   let replayError = ''
   let errorMessage = ''
   let imageFormat = 'jpg'
+
+  $: isSceneOnTop
+    ? window.localStorage.setItem('isSceneOnTop', 'true')
+    : window.localStorage.removeItem('isSceneOnTop')
 
   $: isIconMode
     ? window.localStorage.setItem('isIconMode', 'true')
