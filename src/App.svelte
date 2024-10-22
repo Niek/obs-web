@@ -23,7 +23,9 @@
     mdiCameraOff,
     mdiCamera,
     mdiMotionPlayOutline,
-    mdiMotionPlay
+    mdiMotionPlay,
+    mdiContentSaveMoveOutline,
+    mdiContentSaveCheckOutline
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
@@ -109,6 +111,8 @@
   let replayError = ''
   let errorMessage = ''
   let imageFormat = 'jpg'
+  let isSaveReplay = false
+  let isSaveReplayDisabled = false
 
   $: isSceneOnTop
     ? window.localStorage.setItem('isSceneOnTop', 'true')
@@ -155,15 +159,35 @@
     })
   }
 
+  function setReplayError(message) {
+      replayError = message
+      setTimeout(() => {
+        replayError = ''
+      }, 5000)
+  }
+
   async function toggleReplay () {
     const data = await sendCommand('ToggleReplayBuffer')
     console.debug('ToggleReplayBuffer', data.outputActive)
     if (data.outputActive === undefined) {
-      replayError = 'Replay buffer is not enabled.'
-      setTimeout(function () {
-        replayError = ''
-      }, 5000)
+      setReplayError('Replay buffer is not enabled.')
     } else isReplaying = data.outputActive
+  }
+
+  async function saveReplay() {
+    const data = await sendCommand('GetReplayBufferStatus')
+    console.debug('GetReplayBufferStatus', data.outputActive)
+    if (!data.outputActive) {
+      setReplayError('Replay buffer is not enabled.')
+      return
+    }
+    await sendCommand('SaveReplayBuffer')
+    isSaveReplayDisabled = true
+    isSaveReplay = true
+    setTimeout(() => {
+      isSaveReplay = false
+      isSaveReplayDisabled = false
+    }, 2500)
   }
 
   async function switchSceneView () {
@@ -460,6 +484,24 @@
               <span class="icon">
                 <Icon
                   path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay}
+                />
+              </span>
+              {#if replayError}<span>{replayError}</span>{/if}
+            </button>
+            <button
+              class:is-light={!isSaveReplay}
+              class="button is-link"
+              title="Save Replay Buffer"
+              on:click={() => {
+                if (!isSaveReplayDisabled) {
+                  saveReplay()
+                }
+                isSaveReplayDisabled = !isSaveReplayDisabled
+              }}
+            >
+              <span class="icon">
+                <Icon
+                  path={isSaveReplay ? mdiContentSaveCheckOutline : mdiContentSaveMoveOutline}
                 />
               </span>
               {#if replayError}<span>{replayError}</span>{/if}
