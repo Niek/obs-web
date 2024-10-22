@@ -1,7 +1,7 @@
 # OBS-web
 
 <!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-17-orange.svg?style=flat-square)](#contributors-)
+[![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
@@ -91,6 +91,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/donahuetech"><img src="https://avatars.githubusercontent.com/u/28513975?v=4?s=100" width="100px;" alt="donahuetech"/><br /><sub><b>donahuetech</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=donahuetech" title="Code">💻</a> <a href="#ideas-donahuetech" title="Ideas, Planning, & Feedback">🤔</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/AshwinSatyawan"><img src="https://avatars.githubusercontent.com/u/40487239?v=4?s=100" width="100px;" alt="AshwinSatyawan"/><br /><sub><b>AshwinSatyawan</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=AshwinSatyawan" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ewized"><img src="https://avatars.githubusercontent.com/u/1458852?v=4?s=100" width="100px;" alt="ewized"/><br /><sub><b>ewized</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=ewized" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/bzip22"><img src="https://avatars.githubusercontent.com/u/21367547?v=4?s=100" width="100px;" alt="bzip22"/><br /><sub><b>bzip22</b></sub></a><br /><a href="https://github.com/Niek/obs-web/commits?author=bzip22" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
