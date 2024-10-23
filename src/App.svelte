@@ -25,7 +25,12 @@
     mdiMotionPlayOutline,
     mdiMotionPlay,
     mdiContentSaveMoveOutline,
+<<<<<<< HEAD
+    mdiContentSaveCheckOutline,
+	mdiPlayBoxMultiple
+=======
     mdiContentSaveCheckOutline
+>>>>>>> 38c34b0 (Created framework for saving buffer replay (#431))
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
@@ -64,6 +69,16 @@
         .getElementById(navbar.dataset.target)
         .classList.toggle('is-active')
     })
+	
+	 // Listen for clicks outside the submenu to close it
+    document.addEventListener('click', (event) => {
+    const submenu = document.querySelector('.submenu');
+    const replayButton = document.querySelector('[title="Replay Options"]');
+		if (submenu && replayButton && !submenu.contains(event.target) && !replayButton.contains(event.target)) {
+		isReplayMenu = false;
+	  }
+    })
+	
 
     // Listen for fullscreen changes
     document.addEventListener('fullscreenchange', () => {
@@ -113,6 +128,10 @@
   let imageFormat = 'jpg'
   let isSaveReplay = false
   let isSaveReplayDisabled = false
+<<<<<<< HEAD
+  let isReplayMenu = false
+=======
+>>>>>>> 38c34b0 (Created framework for saving buffer replay (#431))
 
   $: isSceneOnTop
     ? window.localStorage.setItem('isSceneOnTop', 'true')
@@ -166,12 +185,45 @@
       }, 5000)
   }
 
+<<<<<<< HEAD
+  function toggleReplayMenu () {
+    isReplayMenu = !isReplayMenu
+  }
+
+=======
+>>>>>>> 38c34b0 (Created framework for saving buffer replay (#431))
   async function toggleReplay () {
     const data = await sendCommand('ToggleReplayBuffer')
     console.debug('ToggleReplayBuffer', data.outputActive)
     if (data.outputActive === undefined) {
       setReplayError('Replay buffer is not enabled.')
+<<<<<<< HEAD
+    } else { 
+		setTimeout(() => {
+			isReplaying = data.outputActive
+			isReplayMenu = false
+		},1800)
+	}
+  }
+
+  async function saveReplay() {
+    const data = await sendCommand('GetReplayBufferStatus')
+    console.debug('GetReplayBufferStatus', data.outputActive)
+    if (!data.outputActive) {
+      setReplayError('Replay buffer is not enabled.')
+      return
+    }
+    await sendCommand('SaveReplayBuffer')
+    isSaveReplayDisabled = true
+    isSaveReplay = true
+    setTimeout(() => {
+      isSaveReplay = false
+      isSaveReplayDisabled = false
+	  isReplayMenu = false
+    }, 2500)
+=======
     } else isReplaying = data.outputActive
+>>>>>>> 38c34b0 (Created framework for saving buffer replay (#431))
   }
 
   async function saveReplay() {
@@ -273,6 +325,8 @@
     const data = await sendCommand('GetVersion')
     const version = data.obsWebSocketVersion || ''
     console.log('OBS-websocket version:', version)
+    const replayBufferState = await sendCommand('GetReplayBufferStatus');
+    isReplaying = replayBufferState.outputActive;
     if (compareVersions(version, OBS_WEBSOCKET_LATEST_VERSION) < 0) {
       alert(
         'You are running an outdated OBS-websocket (version ' +
@@ -475,6 +529,21 @@
               </span>
             </button>
             <button
+              class:is-light={!isReplayMenu}
+              class="button is-link"
+              title="Replay Options"
+              on:click={toggleReplayMenu}
+            >
+              <span class="icon">
+                <Icon
+                  path={mdiPlayBoxMultiple}
+                />
+              </span>
+			  {#if replayError}<span>{replayError}</span>{/if}
+            </button>
+			{#if isReplayMenu}
+			<div class="submenu">
+            <button
               class:is-light={!isReplaying}
               class:is-danger={replayError}
               class="button is-link"
@@ -486,7 +555,6 @@
                   path={isReplaying ? mdiMotionPlayOutline : mdiMotionPlay}
                 />
               </span>
-              {#if replayError}<span>{replayError}</span>{/if}
             </button>
             <button
               class:is-light={!isSaveReplay}
@@ -504,8 +572,15 @@
                   path={isSaveReplay ? mdiContentSaveCheckOutline : mdiContentSaveMoveOutline}
                 />
               </span>
+<<<<<<< HEAD
+            </button>
+			</div>
+			{/if}
+			<span style="margin-right: 10px;"></span>
+=======
               {#if replayError}<span>{replayError}</span>{/if}
             </button>
+>>>>>>> 38c34b0 (Created framework for saving buffer replay (#431))
             <ProfileSelect />
             <SceneCollectionSelect />
             <button
