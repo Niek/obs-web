@@ -26,7 +26,12 @@ export default {
       }
     }),
 
-    postcss({ extract: true, plugins: (production ? [purgecss({ content: ['./src/**/*.svelte', './rollup.config.js'], safelist: [/svelte-/] })] : []), minimize: production }),
+    postcss({
+      extract: true,
+      plugins: (production ? [purgecss({ content: ['./src/**/*.svelte', './rollup.config.js'], safelist: [/svelte-/] })] : []),
+      minimize: production,
+      use: { sass: { quietDeps: true } } // Disable deprecation warning
+    }),
 
     commonjs(),
     nodePolyfills(),
