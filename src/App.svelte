@@ -159,11 +159,11 @@
     })
   }
 
-  function setReplayError(message) {
-      replayError = message
-      setTimeout(() => {
-        replayError = ''
-      }, 5000)
+  function setReplayError (message) {
+    replayError = message
+    setTimeout(() => {
+      replayError = ''
+    }, 5000)
   }
 
   async function toggleReplay () {
@@ -174,7 +174,7 @@
     } else isReplaying = data.outputActive
   }
 
-  async function saveReplay() {
+  async function saveReplay () {
     const data = await sendCommand('GetReplayBufferStatus')
     console.debug('GetReplayBufferStatus', data.outputActive)
     if (!data.outputActive) {
