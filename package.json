@@ -8,7 +8,7 @@
     "lint": "npx standard --fix && npx standard --parser svelte-eslint-parser --plugin svelte '**/*.svelte' --fix"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "^6.0.0",
+    "@fullhuman/postcss-purgecss": "^7.0.2",
     "@mdi/js": "^7.4.47",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-html": "^1.0.4",
