@@ -8,13 +8,13 @@
     "lint": "npx standard --fix && npx standard --parser svelte-eslint-parser --plugin svelte '**/*.svelte' --fix"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "^6.0.0",
+    "@fullhuman/postcss-purgecss": "<7",
     "@mdi/js": "^7.4.47",
     "@rollup/plugin-commonjs": "^28.0.1",
     "@rollup/plugin-html": "^1.1.0",
-    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@rollup/plugin-node-resolve": "^16",
     "@rollup/plugin-terser": "^0.4.4",
-    "bulma": "^0.9.4",
+    "bulma": "<1",
     "compare-versions": "^6.1.1",
     "eslint-plugin-svelte": "^2.46.1",
     "mdi-svelte": "^1.1.2",
@@ -27,7 +27,7 @@
     "rollup-plugin-svelte": "^7.2.0",
     "sass": "^1.82.0",
     "standard": "^17.1.2",
-    "svelte": "^4.2.19"
+    "svelte": "<5"
   },
   "dependencies": {
     "sirv-cli": "^3"
