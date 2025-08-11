@@ -90,6 +90,11 @@
       await connect()
     }
 
+    if (window.localStorage.getItem('obsAddress')) {
+      // If we have a saved address, use that
+      address = window.localStorage.getItem('obsAddress')
+    }
+
     // Export the sendCommand() function to the window object
     window.sendCommand = sendCommand
   })
@@ -242,6 +247,7 @@
       console.log(
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
       )
+      window.localStorage.setItem('obsAddress', address) // Save address for next time
     } catch (e) {
       console.log(e)
       errorMessage = e.message
