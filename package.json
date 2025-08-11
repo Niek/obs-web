@@ -11,7 +11,7 @@
     "@fullhuman/postcss-purgecss": "<7",
     "@mdi/js": "^7.4.47",
     "@rollup/plugin-commonjs": "^28.0.3",
-    "@rollup/plugin-html": "^1.1.0",
+    "@rollup/plugin-html": "^2.0.0",
     "@rollup/plugin-node-resolve": "^16",
     "@rollup/plugin-terser": "^0.4.4",
     "bulma": "<1",
