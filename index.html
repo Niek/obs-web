@@ -1,18 +1,30 @@
-<!DOCTYPE html>
-<html lang='en' data-theme='light'>
-<head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <meta name='"mobile-web-app-capable' content='yes'>
+<!doctype html>
+<html lang="en" data-theme="light">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="icon" href="/favicon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    
+		<link href="/_app/immutable/assets/bundle.DLDp358o.css" rel="stylesheet">
+		<link rel="modulepreload" href="/_app/immutable/bundle.BthrtatK.js">
+  </head>
+  <body data-sveltekit-preload-data="hover">
+    <div style="display: contents">
+			<script>
+				{
+					__sveltekit_yrzukb = {
+						base: ""
+					};
 
-  <title>OBS-web</title>
+					const element = document.currentScript.parentElement;
 
-  <link rel='icon' type='image/png' href='favicon.png'>
-  <link rel='stylesheet' href='bundle-ve48512f.css'>
-  <link rel='manifest' href='manifest.json'>
-  <script defer src='bundle-ve48512f.js'></script>
-</head>
-
-<body>
-</body>
+					import("/_app/immutable/bundle.BthrtatK.js").then((app) => {
+						app.start(element)
+					});
+				}
+			</script>
+		</div>
+  </body>
 </html>
