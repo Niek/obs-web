@@ -57,7 +57,7 @@ npm run dev # or: npm run build
 #### Docker:
 
 ```bash
-docker run --rm -p5000:5000 ghcr.io/niek/obs-web
+docker run --rm -p8080:8080 ghcr.io/niek/obs-web
 ```
 
 ## Contributors ✨

@@ -1,4 +1,5 @@
 /node_modules/
 /public/bundle-*
 /public/index.html
+.cache/
 .DS_Store

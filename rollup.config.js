@@ -4,13 +4,12 @@ import commonjs from '@rollup/plugin-commonjs'
 import livereload from 'rollup-plugin-livereload'
 import terser from '@rollup/plugin-terser'
 import postcss from 'rollup-plugin-postcss'
-import purgecss from '@fullhuman/postcss-purgecss'
+import { purgeCSSPlugin } from '@fullhuman/postcss-purgecss'
 import nodePolyfills from 'rollup-plugin-polyfill-node'
 import html from '@rollup/plugin-html'
 
 const production = !process.env.ROLLUP_WATCH
 const version = require('fs').existsSync('.git') ? String(require('child_process').execSync('git rev-parse --short HEAD')).trim() : 'static' // append short git commit to bundles
-
 export default {
   input: 'src/main.js',
   output: {
@@ -28,9 +27,9 @@ export default {
 
     postcss({
       extract: true,
-      plugins: (production ? [purgecss({ content: ['./src/**/*.svelte', './rollup.config.js'], safelist: [/svelte-/] })] : []),
+      plugins: (production ? [purgeCSSPlugin({ content: ['./src/**/*.svelte', './rollup.config.js'], safelist: [/svelte-/] })] : []),
       minimize: production,
-      use: { sass: { quietDeps: true } } // Disable deprecation warning
+      use: [['sass', { includePaths: ['node_modules', 'src'], quietDeps: true }]]
     }),
 
     commonjs(),
@@ -76,7 +75,7 @@ export default {
     }),
     !production && serve(),
     !production && livereload('public'),
-    production && terser()
+    production && terser({ maxWorkers: 1 })
   ],
   watch: {
     clearScreen: false
