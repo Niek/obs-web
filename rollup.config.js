@@ -31,7 +31,7 @@ export default {
         ? [
             purgeCSSPlugin({
               content: ['./src/**/*.{svelte,jd,ts}', './rollup.config.js'],
-              safelist: { standard: [/$svelte-/] }, // required for inline component styles
+              safelist: { standard: [/svelte-/] }, // required for inline component styles
               variables: true
             })
           ]
