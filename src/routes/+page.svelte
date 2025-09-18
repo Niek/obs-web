@@ -30,13 +30,12 @@
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
-  import './style.scss'
-  import { obs, sendCommand } from './obs.js'
-  import ProgramPreview from './ProgramPreview.svelte'
-  import SceneSwitcher from './SceneSwitcher.svelte'
-  import SourceSwitcher from './SourceSwitcher.svelte'
-  import ProfileSelect from './ProfileSelect.svelte'
-  import SceneCollectionSelect from './SceneCollectionSelect.svelte'
+  import { obs, sendCommand } from '../obs.js'
+  import ProgramPreview from '../ProgramPreview.svelte'
+  import SceneSwitcher from '../SceneSwitcher.svelte'
+  import SourceSwitcher from '../SourceSwitcher.svelte'
+  import ProfileSelect from '../ProfileSelect.svelte'
+  import SceneCollectionSelect from '../SceneCollectionSelect.svelte'
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
