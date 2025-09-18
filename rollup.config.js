@@ -27,7 +27,15 @@ export default {
 
     postcss({
       extract: true,
-      plugins: (production ? [purgeCSSPlugin({ content: ['./src/**/*.svelte', './rollup.config.js'], safelist: [/svelte-/] })] : []),
+      plugins: (production
+        ? [
+            purgeCSSPlugin({
+              content: ['./src/**/*.{svelte,jd,ts}', './rollup.config.js'],
+              safelist: { standard: [/$svelte-/] }, // required for inline component styles
+              variables: true
+            })
+          ]
+        : []),
       minimize: production,
       use: [['sass', { includePaths: ['node_modules', 'src'], quietDeps: true }]]
     }),
