@@ -2,14 +2,43 @@
 const CACHE_NAME = 'offline'
 
 // Customize this with a different URL if needed.
-const cacheFiles = [
-  '/',
-  'service-worker.js',
-  '/icon/icon-192x192.png',
-  '/icon/icon-256x256.png',
-  '/icon/icon-384x384.png',
-  '/icon/icon-512x512.png'
-]
+const cacheFiles = ['/']
+
+const shouldHandle = (request) => {
+  if (request.method !== 'GET') return false
+
+  if (request.mode === 'navigate') return true
+
+  const cacheableDestinations = ['style', 'script']
+  return cacheableDestinations.includes(request.destination)
+}
+
+const networkFirst = async (event) => {
+  const { request } = event
+  const cache = await caches.open(CACHE_NAME)
+
+  const preloadResponse = await event.preloadResponse
+  if (preloadResponse) {
+    cache.put(request, preloadResponse.clone())
+    return preloadResponse
+  }
+
+  try {
+    const networkResponse = await fetch(request)
+    cache.put(request, networkResponse.clone())
+    return networkResponse
+  } catch (error) {
+    const cachedResponse = await cache.match(request)
+    if (cachedResponse) return cachedResponse
+
+    if (request.mode === 'navigate') {
+      const fallback = await cache.match('/')
+      if (fallback) return fallback
+    }
+
+    throw error
+  }
+}
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -43,30 +72,7 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('fetch', (event) => {
-  // We only want to call event.respondWith() if this is a navigation request
-  // for an HTML page.
-  event.respondWith(
-    (async () => {
-      // Respond from the cache if we can
-      const cache = await caches.open(CACHE_NAME)
-      const cachedResponse = await cache.match(event.request)
+  if (!shouldHandle(event.request)) return
 
-      if (cachedResponse) {
-        return cachedResponse
-      }
-
-      // Else, use the preloaded response, if it's there
-      const response = await event.preloadResponse
-
-      if (response) {
-        return response
-      }
-
-      // Else try the network.
-      return fetch(event.request).then((response) => {
-        cache.put(event.request, response.clone())
-        return response
-      })
-    })()
-  )
+  event.respondWith(networkFirst(event))
 })
