@@ -11,7 +11,7 @@
   "devDependencies": {
     "@fullhuman/postcss-purgecss": "^7.0.2",
     "@mdi/js": "^7.4.47",
-    "@sveltejs/adapter-static": "^3.0.9",
+    "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.43.5",
     "bulma": "^1.0.4",
     "compare-versions": "^6.1.1",
