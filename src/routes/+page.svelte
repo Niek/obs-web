@@ -25,12 +25,14 @@
     mdiMotionPlayOutline,
     mdiMotionPlay,
     mdiContentSaveMoveOutline,
-    mdiContentSaveCheckOutline
+    mdiContentSaveCheckOutline,
+    mdiLogout
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
   import { obs, sendCommand } from '../obs.js'
+  import { getConnectionCookie, setConnectionCookie } from '../connection-storage.js'
   import ProgramPreview from '../ProgramPreview.svelte'
   import SceneSwitcher from '../SceneSwitcher.svelte'
   import SourceSwitcher from '../SourceSwitcher.svelte'
@@ -87,9 +89,20 @@
         [address, password] = address.split('#')
       }
       await connect()
+      return
     }
 
-    if (window.localStorage.getItem('obsAddress')) {
+    const savedConnection = getConnectionCookie()
+    if (savedConnection && savedConnection.address) {
+      address = savedConnection.address
+      if (savedConnection.password) {
+        password = savedConnection.password
+        rememberConnection = true
+        await connect()
+      } else {
+        rememberConnection = false
+      }
+    } else if (window.localStorage.getItem('obsAddress')) {
       // If we have a saved address, use that
       address = window.localStorage.getItem('obsAddress')
     }
@@ -111,6 +124,7 @@
   let editable = false
   let address
   let password
+  let rememberConnection = false
   let scenes = []
   let replayError = ''
   let errorMessage = ''
@@ -247,6 +261,11 @@
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
       )
       window.localStorage.setItem('obsAddress', address) // Save address for next time
+      if (rememberConnection) {
+        setConnectionCookie({ address, password })
+      } else {
+        setConnectionCookie(null)
+      }
     } catch (e) {
       console.log(e)
       errorMessage = e.message
@@ -260,14 +279,23 @@
     errorMessage = 'Disconnected'
   }
 
+  async function logout () {
+    rememberConnection = false
+    address = ''
+    password = ''
+    setConnectionCookie(null)
+    window.localStorage.removeItem('obsAddress')
+    if (connected) {
+      await disconnect()
+    } else {
+      connected = false
+      errorMessage = 'Disconnected'
+    }
+  }
+
   // OBS events
   obs.on('ConnectionClosed', () => {
     connected = false
-    window.history.pushState(
-      '',
-      document.title,
-      window.location.pathname + window.location.search
-    ) // Remove the hash
     console.log('Connection closed')
   })
 
@@ -520,10 +548,24 @@
             >
               <span class="icon"><Icon path={mdiConnection} /></span>
             </button>
+            <button
+              class="button is-warning is-light"
+              on:click={logout}
+              title="Logout and forget credentials"
+            >
+              <span class="icon"><Icon path={mdiLogout} /></span>
+            </button>
           {:else}
             <button class="button is-danger" disabled
               >{errorMessage || 'Disconnected'}</button
             >
+            <button
+              class="button is-warning is-light"
+              on:click={logout}
+              title="Clear saved connection details"
+            >
+              <span class="icon"><Icon path={mdiLogout} /></span>
+            </button>
           {/if}
           <!-- svelte-ignore a11y-missing-attribute -->
           <button
@@ -601,9 +643,10 @@
 
       <p>To get started, enter your OBS host:port below and click "connect".</p>
 
-      <form on:submit|preventDefault={connect}>
-        <div class="field is-grouped">
-          <p class="control is-expanded">
+      <form class="mt-4" on:submit|preventDefault={connect}>
+        <div class="field">
+          <label class="label" for="host">OBS host:port</label>
+          <div class="control">
             <input
               id="host"
               bind:value={address}
@@ -612,6 +655,12 @@
               autocomplete=""
               placeholder="ws://localhost:4455"
             />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="password">Password</label>
+          <div class="control">
             <input
               id="password"
               bind:value={password}
@@ -620,10 +669,25 @@
               autocomplete="current-password"
               placeholder="password (leave empty if you have disabled authentication)"
             />
-          </p>
-          <p class="control">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="control">
+            <label class="checkbox">
+              <input
+                type="checkbox"
+                bind:checked={rememberConnection}
+              />
+              Save connection details and password (stored locally in this browser)
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="control">
             <button class="button is-success">Connect</button>
-          </p>
+          </div>
         </div>
       </form>
       <p class="help">
