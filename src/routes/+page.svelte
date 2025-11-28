@@ -25,12 +25,14 @@
     mdiMotionPlayOutline,
     mdiMotionPlay,
     mdiContentSaveMoveOutline,
-    mdiContentSaveCheckOutline
+    mdiContentSaveCheckOutline,
+    mdiLogout
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
   import { obs, sendCommand } from '../obs.js'
+  import { getConnectionCookie, setConnectionCookie } from '../connection-storage.js'
   import ProgramPreview from '../ProgramPreview.svelte'
   import SceneSwitcher from '../SceneSwitcher.svelte'
   import SourceSwitcher from '../SourceSwitcher.svelte'
@@ -38,60 +40,15 @@
   import SceneCollectionSelect from '../SceneCollectionSelect.svelte'
 
   onMount(async () => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-    }
+    setupServiceWorker()
+    await setupWakeLock()
+    setupNavbarToggle()
+    setupFullscreenListeners()
 
-    // Request screen wakelock
-    if ('wakeLock' in navigator) {
-      try {
-        await navigator.wakeLock.request('screen')
-        // Re-request when coming back
-        document.addEventListener('visibilitychange', async () => {
-          if (document.visibilityState === 'visible') {
-            await navigator.wakeLock.request('screen')
-          }
-        })
-      } catch (e) {}
-    }
+    const { shouldAutoConnect } = restoreConnectionState()
 
-    // Toggle the navigation hamburger menu on mobile
-    const navbar = document.querySelector('.navbar-burger')
-    navbar.addEventListener('click', () => {
-      navbar.classList.toggle('is-active')
-      document
-        .getElementById(navbar.dataset.target)
-        .classList.toggle('is-active')
-    })
-
-    // Listen for fullscreen changes
-    document.addEventListener('fullscreenchange', () => {
-      isFullScreen = document.fullscreenElement
-    })
-
-    document.addEventListener('webkitfullscreenchange', () => {
-      isFullScreen = document.webkitFullscreenElement
-    })
-
-    document.addEventListener('msfullscreenchange', () => {
-      isFullScreen = document.msFullscreenElement
-    })
-
-    if (document.location.hash !== '') {
-      // Read address from hash
-      address = document.location.hash.slice(1)
-
-      // This allows you to add a password in the URL like this:
-      // http://obs-web.niek.tv/#ws://localhost:4455#password
-      if (address.includes('#')) {
-        [address, password] = address.split('#')
-      }
+    if (shouldAutoConnect && address) {
       await connect()
-    }
-
-    if (window.localStorage.getItem('obsAddress')) {
-      // If we have a saved address, use that
-      address = window.localStorage.getItem('obsAddress')
     }
 
     // Export the sendCommand() function to the window object
@@ -111,6 +68,7 @@
   let editable = false
   let address
   let password
+  let rememberConnection = false
   let scenes = []
   let replayError = ''
   let errorMessage = ''
@@ -125,6 +83,146 @@
   $: isIconMode
     ? window.localStorage.setItem('isIconMode', 'true')
     : window.localStorage.removeItem('isIconMode')
+
+  // UI helpers
+  function setupServiceWorker () {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js')
+    }
+  }
+
+  async function setupWakeLock () {
+    if (!('wakeLock' in navigator)) return
+    try {
+      const requestWakeLock = async () => {
+        try {
+          await navigator.wakeLock.request('screen')
+        } catch (e) {}
+      }
+
+      await requestWakeLock()
+
+      // Re-request when coming back
+      document.addEventListener('visibilitychange', async () => {
+        if (document.visibilityState === 'visible') {
+          await requestWakeLock()
+        }
+      })
+    } catch (e) {}
+  }
+
+  function setupNavbarToggle () {
+    // Toggle the navigation hamburger menu on mobile
+    const navbar = document.querySelector('.navbar-burger')
+    if (!navbar) return
+    navbar.addEventListener('click', () => {
+      navbar.classList.toggle('is-active')
+      document
+        .getElementById(navbar.dataset.target)
+        .classList.toggle('is-active')
+    })
+  }
+
+  function setupFullscreenListeners () {
+    // Listen for fullscreen changes
+    document.addEventListener('fullscreenchange', () => {
+      isFullScreen = document.fullscreenElement
+    })
+
+    document.addEventListener('webkitfullscreenchange', () => {
+      isFullScreen = document.webkitFullscreenElement
+    })
+
+    document.addEventListener('msfullscreenchange', () => {
+      isFullScreen = document.msFullscreenElement
+    })
+  }
+
+  function normalizeSavedPassword (rawPassword) {
+    if (typeof rawPassword === 'string') return rawPassword
+    if (rawPassword && typeof rawPassword.password === 'string') {
+      return rawPassword.password
+    }
+    return ''
+  }
+
+  // Centralised cookie / legacy-storage restore logic
+  function restoreConnectionFromCookie (hashHasPassword, shouldAutoConnect) {
+    const savedConnection = getConnectionCookie()
+    const hasCookie = !!(savedConnection && savedConnection.address)
+    const legacyAddress = window.localStorage.getItem('obsAddress')
+
+    if (!hasCookie) {
+      // 3. Fallback: legacy storage, address only (no password)
+      if (!address && legacyAddress) {
+        address = legacyAddress
+      }
+      return shouldAutoConnect
+    }
+
+    const cookieAddress = savedConnection.address
+    const cookiePassword = normalizeSavedPassword(savedConnection.password)
+    const hasCookiePassword = cookiePassword.length > 0
+
+    // If hash contained a password, always prefer that over cookie contents
+    if (hashHasPassword) {
+      // Still allow cookie to provide address when hash only set a password,
+      // but in our current format hash always carries both address and password.
+      if (!address) {
+        address = cookieAddress
+      }
+      return shouldAutoConnect
+    }
+
+    // Only override address from cookie when it wasn't explicitly provided via hash
+    if (!address) {
+      address = cookieAddress
+    }
+
+    if (!hasCookiePassword) {
+      rememberConnection = false
+      return shouldAutoConnect
+    }
+
+    // Only use cookie password when not explicitly provided via hash
+    if (!password) {
+      password = cookiePassword
+    }
+    rememberConnection = true
+    shouldAutoConnect = true
+
+    return shouldAutoConnect
+  }
+
+  function restoreConnectionState () {
+    let shouldAutoConnect = false
+    let hashHasPassword = false
+
+    // 1. Read address and optional password from URL hash
+    if (document.location.hash !== '') {
+      // This allows you to add a password in the URL like this:
+      // http://obs-web.niek.tv/#ws://localhost:4455#password
+      let hashValue = document.location.hash.slice(1)
+      if (hashValue.includes('#')) {
+        const [hashAddress, hashPassword] = hashValue.split('#')
+        address = hashAddress
+        password = hashPassword
+        hashHasPassword = true
+        shouldAutoConnect = true
+      } else {
+        address = hashValue
+      }
+    }
+
+    // 2. Restore from cookie / legacy storage
+    shouldAutoConnect = restoreConnectionFromCookie(
+      hashHasPassword,
+      shouldAutoConnect
+    )
+
+    // Final state for onMount caller
+    return { shouldAutoConnect }
+  }
 
   function formatTime (secs) {
     secs = Math.round(secs / 1000)
@@ -236,7 +334,13 @@
       const secure = location.protocol === 'https:' || address.endsWith(':443')
       address = secure ? 'wss://' : 'ws://' + address
     }
-    console.log('Connecting to:', address, '- using password:', password)
+    const hasPassword = typeof password === 'string' && password.length > 0
+    console.log(
+      'Connecting to:',
+      address,
+      '- using password:',
+      hasPassword ? '[set]' : '[empty]'
+    )
     await disconnect()
     try {
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
@@ -247,6 +351,12 @@
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
       )
       window.localStorage.setItem('obsAddress', address) // Save address for next time
+      if (rememberConnection) {
+        const safePassword = typeof password === 'string' ? password : ''
+        setConnectionCookie({ address, password: safePassword })
+      } else {
+        setConnectionCookie(null)
+      }
     } catch (e) {
       console.log(e)
       errorMessage = e.message
@@ -260,14 +370,23 @@
     errorMessage = 'Disconnected'
   }
 
+  async function logout () {
+    rememberConnection = false
+    address = ''
+    password = ''
+    setConnectionCookie(null)
+    window.localStorage.removeItem('obsAddress')
+    if (connected) {
+      await disconnect()
+    } else {
+      connected = false
+      errorMessage = 'Disconnected'
+    }
+  }
+
   // OBS events
   obs.on('ConnectionClosed', () => {
     connected = false
-    window.history.pushState(
-      '',
-      document.title,
-      window.location.pathname + window.location.search
-    ) // Remove the hash
     console.log('Connection closed')
   })
 
@@ -520,10 +639,24 @@
             >
               <span class="icon"><Icon path={mdiConnection} /></span>
             </button>
+            <button
+              class="button is-warning is-light"
+              on:click={logout}
+              title="Logout and forget credentials"
+            >
+              <span class="icon"><Icon path={mdiLogout} /></span>
+            </button>
           {:else}
             <button class="button is-danger" disabled
               >{errorMessage || 'Disconnected'}</button
             >
+            <button
+              class="button is-warning is-light"
+              on:click={logout}
+              title="Clear saved connection details"
+            >
+              <span class="icon"><Icon path={mdiLogout} /></span>
+            </button>
           {/if}
           <!-- svelte-ignore a11y-missing-attribute -->
           <button
@@ -601,9 +734,10 @@
 
       <p>To get started, enter your OBS host:port below and click "connect".</p>
 
-      <form on:submit|preventDefault={connect}>
-        <div class="field is-grouped">
-          <p class="control is-expanded">
+      <form class="mt-4" on:submit|preventDefault={connect}>
+        <div class="field">
+          <label class="label" for="host">OBS host:port</label>
+          <div class="control">
             <input
               id="host"
               bind:value={address}
@@ -612,6 +746,12 @@
               autocomplete=""
               placeholder="ws://localhost:4455"
             />
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="label" for="password">Password</label>
+          <div class="control">
             <input
               id="password"
               bind:value={password}
@@ -620,10 +760,25 @@
               autocomplete="current-password"
               placeholder="password (leave empty if you have disabled authentication)"
             />
-          </p>
-          <p class="control">
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="control">
+            <label class="checkbox">
+              <input
+                type="checkbox"
+                bind:checked={rememberConnection}
+              />
+              Save connection details and password (stored locally in this browser)
+            </label>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="control">
             <button class="button is-success">Connect</button>
-          </p>
+          </div>
         </div>
       </form>
       <p class="help">
