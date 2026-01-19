@@ -25,7 +25,7 @@
     "svelte": "^5.41.1",
     "svelte-eslint-parser": "^1.4.1",
     "svelte-preprocess": "^6.0.3",
-    "terser": "^5.44.1",
+    "terser": "^5.46.0",
     "typescript": "^5.9.3",
     "vite": "^7.3.1"
   }
