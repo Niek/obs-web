@@ -9,7 +9,7 @@
     "lint": "eslint . --ext .js,.ts,.svelte,.html --fix"
   },
   "devDependencies": {
-    "@fullhuman/postcss-purgecss": "^7.0.2",
+    "@fullhuman/postcss-purgecss": "^8.0.0",
     "@mdi/js": "^7.4.47",
     "@sveltejs/adapter-static": "^3.0.10",
     "@sveltejs/kit": "^2.50.2",
