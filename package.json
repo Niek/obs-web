@@ -15,7 +15,7 @@
     "@sveltejs/kit": "^2.53.4",
     "bulma": "^1.0.4",
     "compare-versions": "^6.1.1",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.3",
     "eslint-plugin-html": "^8.1.4",
     "eslint-plugin-svelte": "^3.14.0",
     "mdi-svelte": "^1.1.2",
