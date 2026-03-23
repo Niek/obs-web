@@ -38,8 +38,9 @@
     clearInterval(screenshotInterval)
   })
 
-  // eslint-disable-next-line
-  $: getScreenshot(), programScene, previewScene
+  $: if (programScene || previewScene) {
+    getScreenshot()
+  }
 
   obs.on('StudioModeStateChanged', async (data) => {
     console.log('StudioModeStateChanged', data.studioModeEnabled)

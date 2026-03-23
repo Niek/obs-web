@@ -1,4 +1,3 @@
-/* eslint-env serviceworker */
 const CACHE_NAME = 'offline'
 
 // Customize this with a different URL if needed.

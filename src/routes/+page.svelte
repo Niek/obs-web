@@ -1,5 +1,4 @@
 <script>
-  /* eslint-env browser */
   const OBS_WEBSOCKET_LATEST_VERSION = '5.0.1' // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
@@ -52,7 +51,9 @@
             await navigator.wakeLock.request('screen')
           }
         })
-      } catch (e) {}
+      } catch (error) {
+        console.debug('Wake lock request failed', error)
+      }
     }
 
     // Toggle the navigation hamburger menu on mobile
@@ -609,7 +610,7 @@
               bind:value={address}
               class="input"
               type="text"
-              autocomplete=""
+              autocomplete="off"
               placeholder="ws://localhost:4455"
             />
             <input

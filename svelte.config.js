@@ -56,11 +56,6 @@ export const viteConfig = defineConfig(({ mode }) => {
         compress: {
           passes: 2
         }
-      },
-      rollupOptions: {
-        output: {
-          inlineDynamicImports: true
-        }
       }
     }
   }
