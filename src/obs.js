@@ -16,11 +16,13 @@ export function parseObsConnectionDetails (
     const protocol = url.protocol === 'obswss:' ? 'wss:' : 'ws:'
     address = `${protocol}//${url.host}`
     password = url.pathname ? decodeURIComponent(url.pathname.slice(1)) : password
-  }
-
-  if (address.indexOf('://') === -1) {
+  } else {
     const secure = defaultSecure || address.endsWith(':443')
-    address = (secure ? 'wss://' : 'ws://') + address
+    address = (secure ? 'wss://' : 'ws://') + (
+      address.indexOf('://') === -1
+      ? address
+      : address.slice(address.indexOf('://') + 3)
+    )
   }
 
   return { address, password }
