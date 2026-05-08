@@ -2,7 +2,7 @@
   const OBS_WEBSOCKET_LATEST_VERSION = '5.0.1' // https://api.github.com/repos/Palakis/obs-websocket/releases/latest
 
   // Imports
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount, tick } from 'svelte'
   import {
     mdiSquareRoundedBadge,
     mdiSquareRoundedBadgeOutline,
@@ -24,12 +24,18 @@
     mdiMotionPlayOutline,
     mdiMotionPlay,
     mdiContentSaveMoveOutline,
-    mdiContentSaveCheckOutline
+    mdiContentSaveCheckOutline,
+    mdiQrcodeScan
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
-  import { obs, sendCommand } from '../obs.js'
+  import {
+    DEFAULT_OBS_ADDRESS,
+    obs,
+    parseObsConnectionDetails,
+    sendCommand
+  } from '../obs.js'
   import ProgramPreview from '../ProgramPreview.svelte'
   import SceneSwitcher from '../SceneSwitcher.svelte'
   import SourceSwitcher from '../SourceSwitcher.svelte'
@@ -40,6 +46,8 @@
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/service-worker.js')
     }
+
+    await checkQrScannerSupport()
 
     // Request screen wakelock
     if ('wakeLock' in navigator) {
@@ -99,6 +107,10 @@
     window.sendCommand = sendCommand
   })
 
+  onDestroy(() => {
+    stopQrScanner()
+  })
+
   // State
   let connected
   let heartbeat = {}
@@ -118,6 +130,13 @@
   let imageFormat = 'jpg'
   let isSaveReplay = false
   let isSaveReplayDisabled = false
+  let isQrScannerSupported = false
+  let isQrScannerOpen = false
+  let qrScannerVideo
+  let qrScannerStream
+  let qrScannerDetector
+  let qrScannerTimeout
+  let qrScannerError = ''
 
   $: isSceneOnTop
     ? window.localStorage.setItem('isSceneOnTop', 'true')
@@ -231,15 +250,125 @@
     await sendCommand('ResumeRecord')
   }
 
-  async function connect () {
-    address = address || 'ws://localhost:4455'
-    if (address.indexOf('://') === -1) {
-      const secure = location.protocol === 'https:' || address.endsWith(':443')
-      address = secure ? 'wss://' : 'ws://' + address
+  async function checkQrScannerSupport () {
+    if (!globalThis.BarcodeDetector || !navigator.mediaDevices?.getUserMedia) {
+      return
     }
-    console.log('Connecting to:', address, '- using password:', password)
-    await disconnect()
+
     try {
+      const formats = await globalThis.BarcodeDetector.getSupportedFormats?.()
+      isQrScannerSupported = !formats || formats.includes('qr_code')
+    } catch (error) {
+      console.debug('Could not check barcode formats', error)
+      isQrScannerSupported = true
+    }
+  }
+
+  async function startQrScanner () {
+    if (!isQrScannerSupported || isQrScannerOpen) {
+      return
+    }
+
+    qrScannerError = ''
+    isQrScannerOpen = true
+    await tick()
+
+    try {
+      qrScannerDetector =
+        qrScannerDetector ||
+        new globalThis.BarcodeDetector({ formats: ['qr_code'] })
+      qrScannerStream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: { ideal: 'environment' }
+        }
+      })
+      qrScannerVideo.srcObject = qrScannerStream
+      await qrScannerVideo.play()
+      scanQrCode()
+    } catch (error) {
+      stopQrScanner(false)
+      qrScannerError = error.message || 'Could not start the QR scanner.'
+    }
+  }
+
+  function stopQrScanner (close = true) {
+    clearTimeout(qrScannerTimeout)
+    qrScannerTimeout = undefined
+    qrScannerStream?.getTracks().forEach(track => track.stop())
+    qrScannerStream = undefined
+
+    if (qrScannerVideo) qrScannerVideo.srcObject = null
+    isQrScannerOpen = !close
+    if (close) qrScannerError = ''
+  }
+
+  async function scanQrCode () {
+    if (!isQrScannerOpen || !qrScannerVideo || !qrScannerDetector) {
+      return
+    }
+
+    try {
+      const barcodes = qrScannerVideo.readyState < 2
+        ? []
+        : await qrScannerDetector.detect(qrScannerVideo)
+      const obsQrCode = barcodes.find(barcode =>
+        /^obswss?:\/\//i.test(barcode.rawValue)
+      )
+
+      if (obsQrCode) {
+        await connectToScannedQrCode(obsQrCode.rawValue)
+        return
+      }
+
+      if (barcodes.length > 0) {
+        qrScannerError = 'This QR code is not an OBS websocket connection.'
+      }
+    } catch (error) {
+      console.debug('QR scan failed', error)
+    }
+
+    qrScannerTimeout = setTimeout(scanQrCode, 250)
+  }
+
+  async function connectToScannedQrCode (value) {
+    try {
+      const details = parseObsConnectionDetails(
+        value,
+        password,
+        document.location.protocol === 'https:'
+      )
+      address = details.address
+      password = details.password
+    } catch (error) {
+      qrScannerError = 'This QR code is not an OBS websocket connection.'
+      return
+    }
+
+    stopQrScanner()
+
+    if (
+      document.location.protocol === 'https:' &&
+      address.startsWith('ws://')
+    ) {
+      errorMessage =
+        'This QR code uses a non-secure websocket. Load the non-secure page or use a WSS connection.'
+      return
+    }
+
+    await connect()
+  }
+
+  async function connect () {
+    try {
+      const details = parseObsConnectionDetails(
+        address,
+        password,
+        location.protocol === 'https:'
+      )
+      address = details.address
+      password = details.password
+      console.log('Connecting to:', address, '- using password:', password)
+      await disconnect()
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
         address,
         password
@@ -603,16 +732,30 @@
       <p>To get started, enter your OBS host:port below and click "connect".</p>
 
       <form on:submit|preventDefault={connect}>
-        <div class="field is-grouped">
+        <div class="field is-grouped connect-field">
           <p class="control is-expanded">
-            <input
-              id="host"
-              bind:value={address}
-              class="input"
-              type="text"
-              autocomplete="off"
-              placeholder="ws://localhost:4455"
-            />
+            <span class="connect-address-control">
+              <input
+                id="host"
+                bind:value={address}
+                class="input"
+                class:has-qr-scanner={isQrScannerSupported}
+                type="text"
+                autocomplete="off"
+                placeholder={DEFAULT_OBS_ADDRESS}
+              />
+              {#if isQrScannerSupported}
+                <button
+                  class="button is-white qr-scan-button"
+                  type="button"
+                  title="Scan OBS QR code"
+                  aria-label="Scan OBS QR code"
+                  on:click={startQrScanner}
+                >
+                  <span class="icon"><Icon path={mdiQrcodeScan} /></span>
+                </button>
+              {/if}
+            </span>
             <input
               id="password"
               bind:value={password}
@@ -627,6 +770,52 @@
           </p>
         </div>
       </form>
+
+      {#if isQrScannerOpen}
+        <div class="modal is-active">
+          <div class="modal-background"></div>
+          <div class="modal-card">
+            <header class="modal-card-head">
+              <p class="modal-card-title">Scan OBS QR</p>
+              <button
+                class="delete"
+                type="button"
+                aria-label="close"
+                on:click={stopQrScanner}
+              ></button>
+            </header>
+            <section class="modal-card-body">
+              <video
+                bind:this={qrScannerVideo}
+                class="qr-scanner-video"
+                autoplay
+                muted
+                playsinline
+              ></video>
+              {#if qrScannerError}
+                <p class="help is-danger">{qrScannerError}</p>
+              {:else if !qrScannerStream}
+                <p class="help">Starting camera...</p>
+              {:else}
+                <p class="help">Looking for OBS QR code...</p>
+              {/if}
+              <p class="help">
+                Find it in OBS under WebSocket Server Settings -> Show Connect
+                Info.
+              </p>
+            </section>
+            <footer class="modal-card-foot">
+              <button
+                class="button"
+                type="button"
+                on:click={stopQrScanner}
+              >
+                Cancel
+              </button>
+            </footer>
+          </div>
+        </div>
+      {/if}
       <p class="help">
         Make sure that you use <a
           href="https://github.com/obsproject/obs-studio/releases">OBS v28+</a

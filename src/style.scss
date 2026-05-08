@@ -16,3 +16,40 @@
 .rotate {
   animation: rotating 10s linear infinite;
 }
+
+.connect-address-control {
+  display: block;
+  position: relative;
+}
+
+.connect-address-control .has-qr-scanner {
+  padding-right: 3rem;
+}
+
+.qr-scan-button {
+  border: 0;
+  bottom: 1px;
+  height: calc(100% - 2px);
+  position: absolute;
+  right: 1px;
+  top: 1px;
+  width: 2.75rem;
+}
+
+.qr-scanner-video {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #111;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+@media screen and (max-width: 768px) {
+  .connect-field {
+    flex-wrap: wrap;
+  }
+
+  .connect-field .control.is-expanded {
+    flex: 1 0 100%;
+  }
+}
