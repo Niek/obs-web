@@ -1,13 +1,11 @@
 import adapter from '@sveltejs/adapter-static'
 import { sveltekit } from '@sveltejs/kit/vite'
-import preprocess from 'svelte-preprocess'
+import { vitePreprocess } from '@sveltejs/vite-plugin-svelte'
 import purgecssImport from '@fullhuman/postcss-purgecss'
 import { defineConfig } from 'vite'
 
 const config = {
-  preprocess: preprocess({
-    scss: {}
-  }),
+  preprocess: vitePreprocess(),
   kit: {
     adapter: adapter({
       pages: 'public',
