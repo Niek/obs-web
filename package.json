@@ -12,7 +12,7 @@
     "@fullhuman/postcss-purgecss": "^8.0.0",
     "@mdi/js": "^7.4.47",
     "@sveltejs/adapter-static": "^3.0.10",
-    "@sveltejs/kit": "^2.60.1",
+    "@sveltejs/kit": "^2.61.1",
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "bulma": "^1.0.4",
     "compare-versions": "^6.1.1",
