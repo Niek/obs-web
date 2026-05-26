@@ -32,15 +32,18 @@
 
   import {
     DEFAULT_OBS_ADDRESS,
+    EventSubscription,
     obs,
     parseObsConnectionDetails,
     sendCommand
   } from '../obs.js'
+  import OBSAudioMeter from '../OBSAudioMeter.svelte'
   import ProgramPreview from '../ProgramPreview.svelte'
   import SceneSwitcher from '../SceneSwitcher.svelte'
   import SourceSwitcher from '../SourceSwitcher.svelte'
   import ProfileSelect from '../ProfileSelect.svelte'
   import SceneCollectionSelect from '../SceneCollectionSelect.svelte'
+  import LocalBrowserMicTest from '../LocalBrowserMicTest.svelte'
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -371,7 +374,11 @@
       await disconnect()
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
         address,
-        password
+        password,
+        {
+          eventSubscriptions:
+            EventSubscription.All | EventSubscription.InputVolumeMeters
+        }
       )
       console.log(
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
@@ -686,6 +693,7 @@
       {#if !isSceneOnTop}
         <ProgramPreview {imageFormat} />
       {/if}
+      <OBSAudioMeter />
       {#each scenes as scene}
         {#if scene.sceneName.indexOf('(switch)') > 0}
           <SourceSwitcher
@@ -831,6 +839,11 @@
         <a href="/v4/">archived OBS-web v4</a> page.
       </p>
     {/if}
+
+    <details class="local-mic-test-details">
+      <summary>Local Browser Mic Test</summary>
+      <LocalBrowserMicTest />
+    </details>
   </div>
 </section>
 
@@ -846,3 +859,14 @@
     </p>
   </div>
 </footer>
+
+<style>
+  .local-mic-test-details {
+    margin-top: 1rem;
+  }
+
+  .local-mic-test-details summary {
+    cursor: pointer;
+    font-size: .875rem;
+  }
+</style>
