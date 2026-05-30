@@ -75,9 +75,7 @@
     if (!programScene) return
     let data = await sendCommand('GetSourceScreenshot', {
       sourceName: programScene,
-      imageFormat,
-      imageWidth: 960,
-      imageHeight: 540
+      imageFormat
     })
     if (data && data.imageData && program) {
       program.src = data.imageData
@@ -88,9 +86,7 @@
       if (previewScene !== programScene) {
         data = await sendCommand('GetSourceScreenshot', {
           sourceName: previewScene,
-          imageFormat,
-          imageWidth: 960,
-          imageHeight: 540
+          imageFormat
         })
       }
       if (data && data.imageData && preview) {
