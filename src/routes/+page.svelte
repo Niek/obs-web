@@ -370,7 +370,7 @@
       )
       address = details.address
       password = details.password
-      console.log('Connecting to:', address, '- using password:', password)
+      console.log('Connecting to:', address)
       await disconnect()
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
         address,
