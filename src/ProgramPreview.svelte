@@ -13,10 +13,6 @@
   let screenshotInterval
   let transitions = []
   // let currentTransition = ''
-  const screenshotOptions = {
-    imageWidth: 960,
-    imageHeight: 540
-  }
 
   onMount(async () => {
     let data
@@ -79,8 +75,7 @@
     if (!programScene) return
     let data = await sendCommand('GetSourceScreenshot', {
       sourceName: programScene,
-      imageFormat,
-      ...screenshotOptions
+      imageFormat
     })
     if (data && data.imageData && program) {
       program.src = data.imageData
@@ -91,8 +86,7 @@
       if (previewScene !== programScene) {
         data = await sendCommand('GetSourceScreenshot', {
           sourceName: previewScene,
-          imageFormat,
-          ...screenshotOptions
+          imageFormat
         })
       }
       if (data && data.imageData && preview) {
