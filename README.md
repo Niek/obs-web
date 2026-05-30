@@ -4,6 +4,32 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-18-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
+## Fork note: audio meter additions
+
+This repository is a community fork of [Niek/obs-web](https://github.com/Niek/obs-web), the browser-based OBS remote control project.
+
+This fork adds OBS websocket-driven audio meters for active OBS input volume levels, plus a collapsible Local Browser Mic Test diagnostics section. It also preserves fixed 960x540 program/preview screenshot sizing and makes additional Vite dev/preview allowed hosts configurable through `VITE_ALLOWED_HOSTS`.
+
+This is not the official OBS-web project. It is offered as an experimental enhancement in case the audio-meter workflow is useful to others.
+
+### Added in this fork
+
+- OBS websocket-driven audio meters for active OBS input volume levels
+- Collapsible Local Browser Mic Test diagnostics section
+- Shared fixed 960x540 screenshot sizing for program/preview images
+- Configurable extra Vite dev/preview allowed hosts via `VITE_ALLOWED_HOSTS`
+
+### Development note
+
+These changes were built with AI assistance and reviewed/tested locally with:
+
+- `npm run lint`
+- `npm run build`
+
+The original GPL-3.0 license, project attribution, and contributor information are preserved below.
+
+---
+
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
 
 ### **URL: http://obs-web.niek.tv/**
