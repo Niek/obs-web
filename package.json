@@ -22,7 +22,7 @@
     "mdi-svelte": "^1.1.2",
     "neostandard": "^0.13.0",
     "obs-websocket-js": "^5.0.8",
-    "sass": "^1.100.0",
+    "sass": "^1.101.0",
     "svelte": "^5.54.1",
     "svelte-eslint-parser": "^1.8.0",
     "terser": "^5.48.0",
