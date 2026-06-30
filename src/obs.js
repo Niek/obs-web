@@ -1,7 +1,8 @@
-import OBSWebSocket from 'obs-websocket-js'
+import OBSWebSocket, { EventSubscription } from 'obs-websocket-js'
 
 export const obs = new OBSWebSocket()
 export const DEFAULT_OBS_ADDRESS = 'ws://localhost:4455'
+export { EventSubscription }
 
 export function parseObsConnectionDetails (
   inputAddress,
