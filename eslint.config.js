@@ -4,13 +4,15 @@ import svelte from 'eslint-plugin-svelte'
 import svelteConfig from './svelte.config.js'
 
 const htmlFiles = ['**/*.html']
+const ignores = resolveIgnoresFromGitignore()
 const svelteFiles = ['**/*.svelte', '**/*.svelte.*']
 
 export default [
+  { ignores },
   ...neostandard({
     env: ['browser', 'serviceworker'],
     filesTs: ['**/*.svelte.ts'],
-    ignores: resolveIgnoresFromGitignore(),
+    ignores,
     ts: true
   }),
   {
