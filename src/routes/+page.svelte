@@ -25,13 +25,16 @@
     mdiMotionPlay,
     mdiContentSaveMoveOutline,
     mdiContentSaveCheckOutline,
-    mdiQrcodeScan
+    mdiQrcodeScan,
+    mdiWifi,
+    mdiLayersOutline
   } from '@mdi/js'
   import Icon from 'mdi-svelte'
   import { compareVersions } from 'compare-versions'
 
   import {
     DEFAULT_OBS_ADDRESS,
+    OBS_EVENT_SUBSCRIPTIONS,
     obs,
     parseObsConnectionDetails,
     sendCommand
@@ -41,6 +44,8 @@
   import SourceSwitcher from '../SourceSwitcher.svelte'
   import ProfileSelect from '../ProfileSelect.svelte'
   import SceneCollectionSelect from '../SceneCollectionSelect.svelte'
+  import AudioMixer from '../AudioMixer.svelte'
+  import SceneItemsPanel from '../SceneItemsPanel.svelte'
 
   onMount(async () => {
     if ('serviceWorker' in navigator) {
@@ -118,6 +123,8 @@
   let isFullScreen
   let isStudioMode
   let isSceneOnTop = window.localStorage.getItem('isSceneOnTop') || false
+  let isProgramItemsPanelOpen = false
+  let isPreviewItemsPanelOpen = false
   let isVirtualCamActive
   let isIconMode = window.localStorage.getItem('isIconMode') || false
   let isReplaying
@@ -137,6 +144,19 @@
   let qrScannerDetector
   let qrScannerTimeout
   let qrScannerError = ''
+  let pendingConfirm = null // { title, message, confirmLabel, confirmClass, action }
+
+  // Stream connection-quality tracking, derived from GetStreamStatus polled
+  // every heartbeat tick. outputBytes is cumulative, so bitrate is our own
+  // delta-over-time - obs-websocket doesn't hand back a ready-made kbps
+  // figure. streamCongestion mirrors OBS's own status bar smoothing
+  // (frontend/widgets/OBSBasicStatusBar.cpp: UpdateDroppedFrames) - snap up
+  // immediately on a spike, decay down gradually via averaging - so the
+  // indicator doesn't flicker between colors every single second.
+  let lastStreamBytes = 0
+  let lastStreamBytesTime = 0
+  let streamKbps = 0
+  let streamCongestion = 0
 
   $: isSceneOnTop
     ? window.localStorage.setItem('isSceneOnTop', 'true')
@@ -145,6 +165,60 @@
   $: isIconMode
     ? window.localStorage.setItem('isIconMode', 'true')
     : window.localStorage.removeItem('isIconMode')
+
+  // Dropped-frame percentage straight from obs-websocket's own counters
+  // (GetStreamStatus's outputSkippedFrames/outputTotalFrames) - no need to
+  // replicate OBS's own calculation, it's already exposed pre-computed.
+  $: streamDroppedPercent = heartbeat && heartbeat.streaming && heartbeat.streaming.outputTotalFrames
+    ? (heartbeat.streaming.outputSkippedFrames / heartbeat.streaming.outputTotalFrames) * 100
+    : 0
+
+  // Same three-way congestion thresholds OBS Studio's own status bar uses
+  // (goodThreshold=0.3333, mediocreThreshold=0.6667 in
+  // OBSBasicStatusBar.cpp) collapsed onto this app's existing green/
+  // yellow/red convention (already used for the VU meter's zones) instead
+  // of OBS's separate 4-icon set.
+  $: streamHealthClass = streamCongestion <= 0.3333
+    ? 'is-success'
+    : streamCongestion <= 0.6667
+      ? 'is-warning'
+      : 'is-danger'
+
+  function updateStreamHealth (streaming) {
+    const now = performance.now()
+    if (!streaming || !streaming.outputActive) {
+      lastStreamBytes = 0
+      lastStreamBytesTime = 0
+      streamKbps = 0
+      streamCongestion = 0
+      return
+    }
+
+    if (lastStreamBytesTime > 0 && streaming.outputBytes >= lastStreamBytes) {
+      const deltaBytes = streaming.outputBytes - lastStreamBytes
+      const deltaSeconds = (now - lastStreamBytesTime) / 1000
+      if (deltaSeconds > 0) streamKbps = (deltaBytes * 8) / deltaSeconds / 1000
+    }
+    lastStreamBytes = streaming.outputBytes
+    lastStreamBytesTime = now
+
+    const congestion = typeof streaming.outputCongestion === 'number' ? streaming.outputCongestion : 0
+    streamCongestion = Math.min(1, Math.max(congestion, (congestion + streamCongestion) * 0.5))
+  }
+
+  function requestConfirm (config) {
+    pendingConfirm = config
+  }
+
+  async function confirmPendingAction () {
+    const config = pendingConfirm
+    pendingConfirm = null
+    if (config) await config.action()
+  }
+
+  function cancelPendingAction () {
+    pendingConfirm = null
+  }
 
   function formatTime (secs) {
     secs = Math.round(secs / 1000)
@@ -371,7 +445,8 @@
       await disconnect()
       const { obsWebSocketVersion, negotiatedRpcVersion } = await obs.connect(
         address,
-        password
+        password,
+        { eventSubscriptions: OBS_EVENT_SUBSCRIPTIONS }
       )
       console.log(
         `Connected to obs-websocket version ${obsWebSocketVersion} (using RPC ${negotiatedRpcVersion})`
@@ -429,6 +504,7 @@
       const streaming = await sendCommand('GetStreamStatus')
       const recording = await sendCommand('GetRecordStatus')
       heartbeat = { stats, streaming, recording }
+      updateStreamHealth(streaming)
       // console.log(heartbeat);
     }, 1000) // Heartbeat
     isStudioMode =
@@ -467,7 +543,7 @@
   <title>OBS-web remote control</title>
 </svelte:head>
 
-<nav class="navbar is-primary" aria-label="main navigation">
+<nav class="navbar is-primary is-fixed-top" aria-label="main navigation">
   <div class="navbar-brand">
     <a class="navbar-item is-size-4 has-text-weight-bold" href="/">
       <img src="favicon.png" alt="OBS-web" class="rotate" /></a
@@ -502,16 +578,36 @@
             {#if heartbeat && heartbeat.streaming && heartbeat.streaming.outputActive}
               <button
                 class="button is-danger"
-                on:click={stopStream}
+                on:click={() => requestConfirm({
+                  title: 'Stop Stream?',
+                  message: 'Do you really want to stop the stream?',
+                  confirmLabel: 'Stop Stream',
+                  confirmClass: 'is-danger',
+                  action: stopStream
+                })}
                 title="Stop Stream"
               >
                 <span class="icon"><Icon path={mdiAccessPointOff} /></span>
                 <span>{formatTime(heartbeat.streaming.outputDuration)}</span>
               </button>
+              <button
+                class="button {streamHealthClass} is-light"
+                disabled
+                title="Stream connection quality"
+              >
+                <span class="icon"><Icon path={mdiWifi} /></span>
+                <span>{Math.round(streamKbps)} kbps · {streamDroppedPercent.toFixed(1)}% dropped</span>
+              </button>
             {:else}
               <button
                 class="button is-danger is-light"
-                on:click={startStream}
+                on:click={() => requestConfirm({
+                  title: 'Start Stream?',
+                  message: 'Do you really want to start the stream?',
+                  confirmLabel: 'Start Stream',
+                  confirmClass: 'is-danger',
+                  action: startStream
+                })}
                 title="Start Stream"
               >
                 <span class="icon"><Icon path={mdiAccessPoint} /></span>
@@ -537,7 +633,13 @@
               {/if}
               <button
                 class="button is-danger"
-                on:click={stopRecording}
+                on:click={() => requestConfirm({
+                  title: 'Stop Recording?',
+                  message: 'Do you really want to stop the recording?',
+                  confirmLabel: 'Stop Recording',
+                  confirmClass: 'is-danger',
+                  action: stopRecording
+                })}
                 title="Stop Recording"
               >
                 <span class="icon"><Icon path={mdiStop} /></span>
@@ -546,7 +648,13 @@
             {:else}
               <button
                 class="button is-danger is-light"
-                on:click={startRecording}
+                on:click={() => requestConfirm({
+                  title: 'Start Recording?',
+                  message: 'Do you really want to start the recording?',
+                  confirmLabel: 'Start Recording',
+                  confirmClass: 'is-danger',
+                  action: startRecording
+                })}
                 title="Start Recording"
               >
                 <span class="icon"><Icon path={mdiRecord} /></span>
@@ -569,13 +677,45 @@
                 <span class="icon"><Icon path={mdiCamera} /></span>
               </button>
             {/if}
+            {#if scenes.length > 1 || isStudioMode}
+              <!-- With only one (or zero) scenes, Studio Mode has nothing
+                   meaningful to preview differently from Program - hidden
+                   in that case rather than disabled, but still shown
+                   whenever isStudioMode is already true (e.g. scenes got
+                   deleted down to 1 while it was on) so it's never
+                   impossible to turn back off. -->
+              <button
+                class:is-light={!isStudioMode}
+                class="button is-link"
+                on:click={toggleStudioMode}
+                title="Toggle Studio Mode"
+              >
+                <span class="icon"><Icon path={mdiBorderVertical} /></span>
+              </button>
+            {/if}
+            {#if isStudioMode}
+              <!-- Ordered left-to-right to match the panels they open: this
+                   button sits to the left of the Program/Live one below, and
+                   opens the panel on the left side of the screen
+                   (side="left") - the two buttons previously appeared in the
+                   opposite order from the panels they controlled, which
+                   read as "crossed" (left button opening the right panel). -->
+              <button
+                class:is-light={!isPreviewItemsPanelOpen}
+                class="button is-success"
+                on:click={() => (isPreviewItemsPanelOpen = !isPreviewItemsPanelOpen)}
+                title="Show/Hide Preview Scene Items"
+              >
+                <span class="icon"><Icon path={mdiLayersOutline} /></span>
+              </button>
+            {/if}
             <button
-              class:is-light={!isStudioMode}
-              class="button is-link"
-              on:click={toggleStudioMode}
-              title="Toggle Studio Mode"
+              class:is-light={!isProgramItemsPanelOpen}
+              class="button is-danger"
+              on:click={() => (isProgramItemsPanelOpen = !isProgramItemsPanelOpen)}
+              title="Show/Hide Program (Live) Scene Items"
             >
-              <span class="icon"><Icon path={mdiBorderVertical} /></span>
+              <span class="icon"><Icon path={mdiLayersOutline} /></span>
             </button>
             <button
               class:is-light={!isSceneOnTop}
@@ -695,6 +835,21 @@
           />
         {/if}
       {/each}
+      <AudioMixer />
+      <SceneItemsPanel
+        mode="program"
+        side="right"
+        open={isProgramItemsPanelOpen}
+        on:close={() => (isProgramItemsPanelOpen = false)}
+      />
+      {#if isStudioMode}
+        <SceneItemsPanel
+          mode="preview"
+          side="left"
+          open={isPreviewItemsPanelOpen}
+          on:close={() => (isPreviewItemsPanelOpen = false)}
+        />
+      {/if}
     {:else}
       <h1 class="subtitle">
         Welcome to
@@ -833,6 +988,38 @@
     {/if}
   </div>
 </section>
+
+{#if pendingConfirm}
+  <div class="modal is-active">
+    <div class="modal-background"></div>
+    <div class="modal-card">
+      <header class="modal-card-head">
+        <p class="modal-card-title">{pendingConfirm.title}</p>
+        <button
+          class="delete"
+          type="button"
+          aria-label="close"
+          on:click={cancelPendingAction}
+        ></button>
+      </header>
+      <section class="modal-card-body">
+        <p>{pendingConfirm.message}</p>
+      </section>
+      <footer class="modal-card-foot">
+        <button class="button" type="button" on:click={cancelPendingAction}>
+          Cancel
+        </button>
+        <button
+          class="button {pendingConfirm.confirmClass}"
+          type="button"
+          on:click={confirmPendingAction}
+        >
+          {pendingConfirm.confirmLabel}
+        </button>
+      </footer>
+    </div>
+  </div>
+{/if}
 
 <footer class="footer">
   <div class="content has-text-centered">
