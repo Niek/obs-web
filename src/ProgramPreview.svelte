@@ -149,7 +149,6 @@
 
         if (programData && programData.imageData && program) {
           program.src = programData.imageData
-          program.className = ''
         }
 
         if (isStudioMode) {
