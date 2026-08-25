@@ -44,6 +44,16 @@
   button.program {
     background-color: #f14668;
   }
+  /* isProgram and isPreview aren't mutually exclusive (this scene is both
+     live AND currently previewed at once - a normal state right after a
+     Studio Mode transition, since Preview doesn't change on its own).
+     Without this, .program's rule (declared later, same specificity) simply
+     wins the cascade and silently drops the "also previewed" cue - this
+     compound selector gives the combined state its own distinct look
+     instead. */
+  button.program.preview {
+    background: linear-gradient(135deg, #f14668 50%, #00d1b2 50%);
+  }
   button:not(.title) {
     padding: 0;
     width: 192px;

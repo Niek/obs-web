@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte'
+  import { onDestroy, onMount } from 'svelte'
   import { obs, sendCommand } from './obs.js'
   import SourceButton from './SourceButton.svelte'
 
@@ -30,31 +30,42 @@
     }
   })
 
-  obs.on('StudioModeStateChanged', async (data) => {
+  // Named handlers (not inline arrow functions passed straight to obs.on)
+  // so onDestroy can remove the exact same references via obs.off() - same
+  // pattern already used in AudioMixer.svelte/SceneItemsPanel.svelte. This
+  // component lives inside +page.svelte's `{#if connected}` block, so it's
+  // destroyed and recreated on every disconnect/reconnect - without this
+  // cleanup, every reconnect stacks another full set of listeners onto the
+  // long-lived `obs` singleton.
+  function handleStudioModeStateChanged (data) {
     console.log('StudioModeStateChanged', data.studioModeEnabled)
     isStudioMode = data.studioModeEnabled
     previewScene = programScene
-  })
+  }
 
-  obs.on('SceneListChanged', async (data) => {
+  function handleSceneListChanged (data) {
     console.log('SceneListChanged', data.scenes.length)
     scenes = data.scenes
-  })
+  }
 
-  obs.on('SceneCreated', async (data) => {
+  function handleSceneCreated (data) {
     console.log('SceneCreated', data)
-  })
+  }
 
-  obs.on('SceneRemoved', async (data) => {
+  // SceneListChanged (above) already fires with a fresh, complete scenes
+  // array whenever OBS's own scene-list-changed frontend event fires,
+  // which covers removal - this handler doesn't need to (and, before this
+  // fix, incorrectly tried to) also patch `scenes` itself. The previous
+  // `delete scenes[i]` mutated the array in place without a reassignment,
+  // which doesn't trigger Svelte reactivity at all and leaves a hole
+  // instead of shrinking the array - dead/buggy code that happened not to
+  // matter in practice because SceneListChanged's own reassignment
+  // superseded it anyway.
+  function handleSceneRemoved (data) {
     console.log('SceneRemoved', data)
-    for (let i = 0; i < scenes.length; i++) {
-      if (scenes[i].sceneName === data.sceneName) {
-        delete scenes[i]
-      }
-    }
-  })
+  }
 
-  obs.on('SceneNameChanged', async (data) => {
+  function handleSceneNameChanged (data) {
     console.log('SceneNameChanged', data)
     for (let i = 0; i < scenes.length; i++) {
       if (scenes[i].sceneName === data.oldSceneName) {
@@ -63,16 +74,34 @@
     }
     // Rename in sceneIcons
     sceneIcons[data.sceneName] = sceneIcons[data.oldSceneName]
-  })
+  }
 
-  obs.on('CurrentProgramSceneChanged', (data) => {
+  function handleCurrentProgramSceneChanged (data) {
     console.log('CurrentProgramSceneChanged', data)
     programScene = data.sceneName || ''
-  })
+  }
 
-  obs.on('CurrentPreviewSceneChanged', async (data) => {
+  function handleCurrentPreviewSceneChanged (data) {
     console.log('CurrentPreviewSceneChanged', data)
     previewScene = data.sceneName
+  }
+
+  obs.on('StudioModeStateChanged', handleStudioModeStateChanged)
+  obs.on('SceneListChanged', handleSceneListChanged)
+  obs.on('SceneCreated', handleSceneCreated)
+  obs.on('SceneRemoved', handleSceneRemoved)
+  obs.on('SceneNameChanged', handleSceneNameChanged)
+  obs.on('CurrentProgramSceneChanged', handleCurrentProgramSceneChanged)
+  obs.on('CurrentPreviewSceneChanged', handleCurrentPreviewSceneChanged)
+
+  onDestroy(() => {
+    obs.off('StudioModeStateChanged', handleStudioModeStateChanged)
+    obs.off('SceneListChanged', handleSceneListChanged)
+    obs.off('SceneCreated', handleSceneCreated)
+    obs.off('SceneRemoved', handleSceneRemoved)
+    obs.off('SceneNameChanged', handleSceneNameChanged)
+    obs.off('CurrentProgramSceneChanged', handleCurrentProgramSceneChanged)
+    obs.off('CurrentPreviewSceneChanged', handleCurrentPreviewSceneChanged)
   })
 
   function sceneClicker (scene) {
@@ -98,7 +127,7 @@
   class:with-icon={buttonStyle === 'icon'}
   >
   {#if editable}
-    {#each scenes.reverse() as scene}
+    {#each [...scenes].reverse() as scene}
     <li>
       <!-- svelte-ignore a11y-label-has-associated-control -->
       <label class="label">Name</label>
