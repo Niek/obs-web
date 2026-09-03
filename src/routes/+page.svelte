@@ -220,6 +220,56 @@
     pendingConfirm = null
   }
 
+  // Makes the confirmation dialog behave like a real modal for keyboard/
+  // screen-reader users: moves focus inside on open, keeps Tab cycling
+  // within the dialog instead of reaching the (visually hidden-behind-
+  // overlay but still-in-DOM-order) page controls, restores focus to
+  // whatever triggered the dialog on close, and treats Escape as Cancel.
+  function trapFocus (node) {
+    const previouslyFocused = document.activeElement
+
+    function getFocusable () {
+      return Array.from(
+        node.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter((el) => !el.disabled)
+    }
+
+    function handleKeydown (event) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        cancelPendingAction()
+        return
+      }
+      if (event.key !== 'Tab') return
+      const focusable = getFocusable()
+      if (focusable.length === 0) return
+      const first = focusable[0]
+      const last = focusable[focusable.length - 1]
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+
+    // Capture phase so this runs before any other keydown handling and
+    // reliably intercepts Tab/Escape regardless of which descendant has
+    // focus.
+    document.addEventListener('keydown', handleKeydown, true)
+    ;(node.querySelector('[data-modal-initial-focus]') || getFocusable()[0] || node).focus()
+
+    return {
+      destroy () {
+        document.removeEventListener('keydown', handleKeydown, true)
+        if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
+          previouslyFocused.focus()
+        }
+      }
+    }
+  }
+
   function formatTime (secs) {
     secs = Math.round(secs / 1000)
     const hours = Math.floor(secs / 3600)
@@ -992,9 +1042,16 @@
 {#if pendingConfirm}
   <div class="modal is-active">
     <div class="modal-background"></div>
-    <div class="modal-card">
+    <div
+      class="modal-card"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="pending-confirm-title"
+      tabindex="-1"
+      use:trapFocus
+    >
       <header class="modal-card-head">
-        <p class="modal-card-title">{pendingConfirm.title}</p>
+        <p class="modal-card-title" id="pending-confirm-title">{pendingConfirm.title}</p>
         <button
           class="delete"
           type="button"
@@ -1006,7 +1063,7 @@
         <p>{pendingConfirm.message}</p>
       </section>
       <footer class="modal-card-foot">
-        <button class="button" type="button" on:click={cancelPendingAction}>
+        <button class="button" type="button" on:click={cancelPendingAction} data-modal-initial-focus>
           Cancel
         </button>
         <button
