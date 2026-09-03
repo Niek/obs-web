@@ -132,6 +132,13 @@
   // almost every value here is negative dB - manual parsing below stands in
   // for the browser-native number validation we'd otherwise get for free.
   function commitDbInput () {
+    // Escape already ended the edit via cancelDbInput() below, which set
+    // isEditingDb false before this blur handler runs - without this
+    // guard we'd re-send whatever stale local value was sitting in
+    // dbInputValue (captured before any external change that happened
+    // while the field was focused), clobbering a legitimate concurrent
+    // OBS-side change with old data.
+    if (!isEditingDb) return
     const parsed = Number.parseFloat(dbInputValue)
     if (!Number.isNaN(parsed)) {
       const clamped = Math.min(MAX_VOLUME_DB, Math.max(MIN_VOLUME_DB, parsed))
@@ -141,12 +148,20 @@
     isEditingDb = false
   }
 
+  function cancelDbInput () {
+    // Just release the edit lock - the reactive statements above (lines
+    // 38/41) re-sync sliderValue/dbInputValue from the current
+    // authoritative volumeDb prop on their own, so this never sends
+    // anything to OBS.
+    isEditingDb = false
+  }
+
   function onDbKeydown (event) {
     if (event.key === 'Enter') {
       event.target.blur() // triggers commitDbInput via on:blur
     } else if (event.key === 'Escape') {
-      dbInputValue = sliderValue.toFixed(1)
-      event.target.blur()
+      cancelDbInput()
+      event.target.blur() // isEditingDb is already false, so commitDbInput's guard above turns this into a no-op
     }
   }
 </script>
