@@ -1,7 +1,12 @@
-import OBSWebSocket from 'obs-websocket-js'
+import OBSWebSocket, { EventSubscription } from 'obs-websocket-js'
 
 export const obs = new OBSWebSocket()
 export const DEFAULT_OBS_ADDRESS = 'ws://localhost:4455'
+
+// All non-high-volume events, plus InputVolumeMeters (used by the audio
+// mixer) which - being high-volume - must be requested explicitly or OBS
+// never sends it.
+export const OBS_EVENT_SUBSCRIPTIONS = EventSubscription.All | EventSubscription.InputVolumeMeters
 
 export function parseObsConnectionDetails (
   inputAddress,
