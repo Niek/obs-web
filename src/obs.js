@@ -10,8 +10,7 @@ export const OBS_EVENT_SUBSCRIPTIONS = EventSubscription.All | EventSubscription
 
 export function parseObsConnectionDetails (
   inputAddress,
-  inputPassword,
-  defaultSecure
+  inputPassword
 ) {
   let address = (inputAddress || DEFAULT_OBS_ADDRESS).trim()
   let password = inputPassword
@@ -24,7 +23,7 @@ export function parseObsConnectionDetails (
   }
 
   if (address.indexOf('://') === -1) {
-    const secure = defaultSecure || address.endsWith(':443')
+    const secure = address.endsWith(':443')
     address = (secure ? 'wss://' : 'ws://') + address
   }
 

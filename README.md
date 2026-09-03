@@ -6,7 +6,7 @@
 
 #### The easiest way to control [OBS](https://obsproject.com/) remotely
 
-### **URL: http://obs-web.niek.tv/**
+### **URL: https://obs-web.niek.tv/**
 
 ###### Download latest build [here](https://github.com/Niek/obs-web/archive/gh-pages.zip)
 
@@ -19,7 +19,7 @@
 #### Features:
 
 - No installation or extra software is needed, works in any modern browser (desktop + mobile)
-- Support for local network and internet control through [WSS tunnels](https://github.com/obsproject/obs-websocket/blob/4.x-compat/SSL-TUNNELLING.md)
+- Support for local network control, plus internet control through [WSS tunnels](https://github.com/obsproject/obs-websocket/blob/4.x-compat/SSL-TUNNELLING.md)
 - Easily switch scenes and start/stop streaming and recording
 - Support for Studio Mode (preview and program scenes)
 - Support for Virtual Camera
