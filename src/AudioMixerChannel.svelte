@@ -89,6 +89,25 @@
     isEditing = false
   }
 
+  // If the drag gesture is interrupted (e.g. iOS/iPadOS cancels an
+  // in-progress touch to hand it to a system gesture) the input never
+  // fires `change`, so onFaderCommit never runs. Without this, isEditing
+  // would stay stuck true forever, permanently blocking the reactive
+  // sync back to the authoritative `volumeDb` prop (line 38) - the fader
+  // would freeze at whatever it last showed even as real
+  // InputVolumeChanged events keep arriving. Just release the lock and
+  // don't send anything; the reactive statement re-syncs sliderValue
+  // from volumeDb on its own once isEditing is false.
+  function onFaderPointerCancel () {
+    isEditing = false
+    // Also clear the double-tap-reset timer: without this, a cancelled
+    // gesture followed by a normal re-tap within DOUBLE_TAP_RESET_MS would
+    // be misread as the second tap of a double-tap and slam the fader to
+    // 0 dB - lastFaderPointerDownAt was never meant to survive a cancelled
+    // gesture, only a completed one.
+    lastFaderPointerDownAt = 0
+  }
+
   function toggleMute () {
     sendCommand('SetInputMute', { inputName, inputMuted: !inputMuted })
   }
@@ -191,6 +210,7 @@
         on:pointerdown={onFaderPointerDown}
         on:input={onFaderInput}
         on:change={onFaderCommit}
+        on:pointercancel={onFaderPointerCancel}
         aria-label="Volume for {inputName}"
         aria-valuetext="{sliderValue.toFixed(1)} dB"
         title="Double-tap or double-click to reset to 0 dB"
