@@ -257,10 +257,25 @@
   // eventSubscriptions on connect (see obs.js/OBS_EVENT_SUBSCRIPTIONS).
   function handleInputVolumeMeters (data) {
     if (!data || !data.inputs || displayedNames.size === 0) return
+    const presentNames = new Set()
     let changed = false
     for (const input of data.inputs) {
       if (displayedNames.has(input.inputName)) {
         latestLevels[input.inputName] = input.inputLevelsMul
+        presentNames.add(input.inputName)
+        changed = true
+      }
+    }
+    // InputVolumeMeters reports every currently-active audio source on each
+    // tick (gated on obs_source_active, not on whether it's momentarily
+    // silent) - a displayed channel missing from this batch has gone
+    // inactive, so its last level must be cleared instead of left frozen at
+    // a stale non-zero value. Deleting (rather than zeroing) falls back to
+    // the same "no levels yet" treatment VuMeter/sumMasterLevels already
+    // give a channel with no InputVolumeMeters data at all.
+    for (const name of displayedNames) {
+      if (!presentNames.has(name) && name in latestLevels) {
+        delete latestLevels[name]
         changed = true
       }
     }
