@@ -65,10 +65,17 @@
   let displayedNames = new Set()
 
   $: displayedNames = new Set(channels.map((c) => c.inputName))
-  $: if (sceneName) {
-    refreshChannels(sceneName)
-  } else {
+  // Clearing synchronously (before the async refresh resolves) closes the
+  // window where a scene switch would otherwise leave the *previous*
+  // scene's rows rendered and interactive - a tap landing in that window
+  // would mute or re-fade a source that isn't in the scene the user is now
+  // looking at, and the panic button (which iterates `channels`) would act
+  // on the stale set. Everything here is addressed by inputName, which is
+  // globally unique, so unlike SceneItemsPanel there's no id-reuse hazard -
+  // just commands aimed at the wrong, no-longer-visible scene.
+  $: {
     channels = []
+    if (sceneName) refreshChannels(sceneName)
   }
 
   onMount(async () => {

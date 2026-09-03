@@ -52,10 +52,14 @@
     }
   }
 
-  $: if (sceneName) {
-    refreshItems(sceneName)
-  } else {
+  // Clearing synchronously (before the async refresh resolves) closes the
+  // window where a scene switch would otherwise leave the *previous*
+  // scene's rows rendered and interactive - since sceneItemId is only
+  // unique within its own scene, a tap landing in that window could toggle
+  // an unrelated item in the new scene that happens to reuse the same id.
+  $: {
     items = []
+    if (sceneName) refreshItems(sceneName)
   }
 
   onMount(async () => {
