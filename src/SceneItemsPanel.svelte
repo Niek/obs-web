@@ -146,7 +146,7 @@
   class:from-left={side === 'left'}
   class:from-right={side !== 'left'}
   aria-label="Scene items"
-  aria-hidden={!open}
+  {...open ? {} : { inert: true }}
 >
   <div class="scene-items-header">
     <div class="scene-items-banner" class:is-live={mode !== 'preview'} class:is-preview={mode === 'preview'}>
