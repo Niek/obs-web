@@ -6,12 +6,6 @@
 export const MIN_VOLUME_DB = -100
 export const MAX_VOLUME_DB = 26
 
-// obs-websocket only exposes OBS_SOURCE_AUDIO-gated requests (GetInputMute,
-// GetInputVolume, ...) - GetInputList/GetSceneItemList don't say which
-// inputs actually carry audio. We detect audio capability by probing
-// GetInputMute per scene item and treating a rejected call as "no audio".
-export const AUDIO_SOURCE_TYPE = 'OBS_SOURCE_TYPE_INPUT'
-
 export function mulToDb (mul) {
   if (!mul || mul <= 0) return MIN_VOLUME_DB
   return Math.max(MIN_VOLUME_DB, 20 * Math.log10(mul))

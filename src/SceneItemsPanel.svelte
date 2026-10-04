@@ -21,9 +21,8 @@
   let loading = false
   let loadError = ''
 
-  // Only top-level scene items - same v1 scope decision as the audio mixer
-  // (AudioMixer.svelte): items nested inside groups aren't recursively
-  // enumerated. GetSceneItemList already returns items in their actual
+  // Only top-level scene items - items nested inside groups aren't
+  // recursively enumerated. GetSceneItemList already returns items in their actual
   // z-order (front-most last), matched here by sorting on sceneItemIndex
   // rather than relying on response order being guaranteed.
   let refreshToken = 0
