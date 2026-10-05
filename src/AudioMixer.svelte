@@ -33,6 +33,15 @@
   const pendingNames = new Set() // initial state fetch in flight
   const failedAt = new Map() // inputName -> timestamp of last failed initial state fetch
 
+  // Bumped whenever all channel state is thrown away (scene collection
+  // switch), so an initial state fetch started before it can't land
+  // afterwards and resurrect the previous collection's values.
+  let stateEpoch = 0
+  // True between CurrentSceneCollectionChanging and ...Changed: OBS is
+  // tearing down and loading sources, so meter batches in that window may
+  // still name the old collection's inputs.
+  let switchingCollection = false
+
   // Global devices get a "Global" badge and are listed first. Only used for
   // presentation - they show up in the meters like any other active input.
   let specialNames = new Set()
@@ -110,14 +119,20 @@
   // ever calls SetInputVolume/SetInputMute/SetInputAudioMonitorType. Uses
   // obs.call() so a failure (e.g. the input was removed in the meantime) can
   // be told apart from a real response instead of defaulting to 0dB.
+  // Addressed by UUID when the meters provide one, so the state fetched is
+  // guaranteed to belong to the input that was metered - not to some other
+  // input that happens to share its name.
   async function addChannel (inputName, inputUuid) {
+    const epoch = stateEpoch
+    const target = inputUuid ? { inputUuid } : { inputName }
     pendingNames.add(inputName)
     try {
       const [volume, mute, monitor] = await Promise.all([
-        obs.call('GetInputVolume', { inputName }),
-        obs.call('GetInputMute', { inputName }),
-        obs.call('GetInputAudioMonitorType', { inputName })
+        obs.call('GetInputVolume', target),
+        obs.call('GetInputMute', target),
+        obs.call('GetInputAudioMonitorType', target)
       ])
+      if (epoch !== stateEpoch) return // state was reset meanwhile - stale
       // Gone again (or renamed) while we were fetching - let the next meter
       // batch it shows up in decide.
       const seen = lastSeen.get(inputName)
@@ -126,17 +141,33 @@
       failedAt.delete(inputName)
       channels = [...channels, {
         inputName,
-        inputUuid: inputUuid || inputName,
+        inputUuid: inputUuid || inputName, // {#each} key
+        meterUuid: inputUuid || null, // as reported by the meters, if at all
         volumeDb: typeof volume.inputVolumeDb === 'number' ? volume.inputVolumeDb : 0,
         inputMuted: !!mute.inputMuted,
         monitorType: monitor.monitorType || MONITOR_TYPE_NONE
       }]
     } catch (e) {
+      if (epoch !== stateEpoch) return
       console.log('Could not load audio state for', inputName, '- error is:', e.message)
       failedAt.set(inputName, performance.now())
     } finally {
-      pendingNames.delete(inputName)
+      if (epoch === stateEpoch) pendingNames.delete(inputName)
     }
+  }
+
+  // Inputs are matched by name everywhere (that's what the meters and the
+  // per-input events key on), and a different scene collection can reuse
+  // the same names for unrelated inputs with their own volume/mute state -
+  // so a collection switch starts over from scratch.
+  function resetChannels () {
+    stateEpoch++
+    channels = []
+    lastSeen.clear()
+    pendingNames.clear()
+    failedAt.clear()
+    for (const name of Object.keys(latestLevels)) delete latestLevels[name]
+    renderedLevels = {}
   }
 
   function removeChannel (inputName) {
@@ -168,6 +199,17 @@
   // cleanup, every reconnect would stack another full set of listeners on
   // the long-lived `obs` singleton, including one more InputVolumeMeters
   // handler (a ~20/sec event) each time.
+  function handleCurrentSceneCollectionChanging () {
+    switchingCollection = true
+    resetChannels()
+  }
+
+  function handleCurrentSceneCollectionChanged () {
+    switchingCollection = false
+    resetChannels()
+    refreshSpecialInputs() // global devices are per collection too
+  }
+
   function handleInputMuteStateChanged (data) {
     const channel = channels.find((c) => c.inputName === data.inputName)
     if (channel) {
@@ -217,10 +259,10 @@
   // eventSubscriptions on connect (see obs.js/OBS_EVENT_SUBSCRIPTIONS).
   // Drives both the levels and which channels exist (see top of file).
   function handleInputVolumeMeters (data) {
-    if (!data || !data.inputs) return
+    if (!data || !data.inputs || switchingCollection) return
     ready = true
     const now = performance.now()
-    const displayed = new Set(channels.map((c) => c.inputName))
+    const displayed = new Map(channels.map((c) => [c.inputName, c]))
     const presentNames = new Set()
     let changed = false
     for (const input of data.inputs) {
@@ -228,7 +270,16 @@
       if (!name) continue
       presentNames.add(name)
       lastSeen.set(name, now)
-      if (displayed.has(name)) {
+      const channel = displayed.get(name)
+      if (channel && input.inputUuid && channel.meterUuid && channel.meterUuid !== input.inputUuid) {
+        // Same name, different input (e.g. removed and re-created, or a
+        // collection switch we didn't get events for) - its state is
+        // someone else's, so drop it and fetch the real one.
+        removeChannel(name)
+        displayed.delete(name)
+        changed = true
+        if (!pendingNames.has(name)) addChannel(name, input.inputUuid)
+      } else if (channel) {
         latestLevels[name] = input.inputLevelsMul
         changed = true
       } else if (!pendingNames.has(name) && !(now - (failedAt.get(name) ?? -Infinity) < RETRY_AFTER_MS)) {
@@ -241,7 +292,7 @@
     // yet" treatment VuMeter/sumMasterLevels already give a channel with no
     // InputVolumeMeters data at all. If it stays gone past the grace period,
     // the channel itself goes.
-    for (const name of displayed) {
+    for (const name of displayed.keys()) {
       if (presentNames.has(name)) continue
       if (name in latestLevels) {
         delete latestLevels[name]
@@ -255,6 +306,8 @@
     if (changed) scheduleLevelsFlush()
   }
 
+  obs.on('CurrentSceneCollectionChanging', handleCurrentSceneCollectionChanging)
+  obs.on('CurrentSceneCollectionChanged', handleCurrentSceneCollectionChanged)
   obs.on('InputMuteStateChanged', handleInputMuteStateChanged)
   obs.on('InputVolumeChanged', handleInputVolumeChanged)
   obs.on('InputNameChanged', handleInputNameChanged)
@@ -264,6 +317,8 @@
   onDestroy(() => {
     clearTimeout(readyTimeout)
     if (rafHandle !== null) cancelAnimationFrame(rafHandle)
+    obs.off('CurrentSceneCollectionChanging', handleCurrentSceneCollectionChanging)
+    obs.off('CurrentSceneCollectionChanged', handleCurrentSceneCollectionChanged)
     obs.off('InputMuteStateChanged', handleInputMuteStateChanged)
     obs.off('InputVolumeChanged', handleInputVolumeChanged)
     obs.off('InputNameChanged', handleInputNameChanged)
