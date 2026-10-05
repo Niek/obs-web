@@ -185,12 +185,12 @@
     <div class="column">
       <div class="program-pane">
         <div class="pane-label pane-label-program">Program (Live)</div>
-        <img bind:this={program} class="pane-image pane-image-program" alt="Program" />
+        <img bind:this={program} class="has-background-dark pane-image pane-image-program" alt="Program" />
       </div>
     </div>
   {:else}
     <div class="column">
-      <img bind:this={program} alt="Program"/>
+      <img bind:this={program} class="has-background-dark" alt="Program" />
     </div>
   {/if}
 </div>
