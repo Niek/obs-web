@@ -49,6 +49,8 @@
 
 #### Build instructions:
 
+Requires Node.js 22.17 or newer.
+
 ```bash
 npm ci
 npm run dev # or: npm run build

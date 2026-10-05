@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-The client app is a SvelteKit SPA under `src/routes/+page.svelte`, with browser-only behaviour enforced via `src/routes/+layout.js` (`ssr = false`, `prerender = false`). Reusable UI flows (scene/source switchers, profile selectors, etc.) stay alongside `obs.js` in `src/`. Global Bulma overrides live in `src/style.scss`, imported once from the root layout. Source assets meant for publishing live in `static/`; running `npm run build` outputs the production bundle (single JS/CSS files plus `index.html`) into `public/` ready for deployment. Tooling is configured through `svelte.config.js`, which also exports the shared Vite configuration.
+The client app is a SvelteKit SPA under `src/routes/+page.svelte`, with browser-only behaviour enforced via `src/routes/+layout.js` (`ssr = false`, `prerender = false`). Reusable UI flows (scene/source switchers, profile selectors, etc.) stay alongside `obs.js` in `src/`. Global Bulma overrides live in `src/style.scss`, imported once from the root layout. Source assets meant for publishing live in `static/`; running `npm run build` outputs the production bundle (single JS/CSS files plus `index.html`) into `public/` ready for deployment. Tooling and SvelteKit plugin options are configured in `vite.config.js`.
 
 ## Build, Test, and Development Commands
 Run `npm install` to sync dependencies. Use `npm run dev` for the Vite-powered dev server (port 8080 by default). Ship builds with `npm run build`; it produces a fully purged, minified SPA in `public/` (single JS + CSS bundle). Serve that bundle locally with `npm run start` (`vite preview`). Keep linting clean via `npm run lint`, which runs StandardJS on JS/Svelte sources.
