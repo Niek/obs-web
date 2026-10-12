@@ -20,7 +20,7 @@
     "eslint-plugin-html": "^8.2.1",
     "eslint-plugin-svelte": "^3.23.0",
     "mdi-svelte": "^1.1.2",
-    "neostandard": "^0.14.0-next.1",
+    "neostandard": "^0.14.0",
     "obs-websocket-js": "^5.0.8",
     "sass": "^1.105.1",
     "svelte": "^5.57.1",
