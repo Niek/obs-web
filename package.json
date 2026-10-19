@@ -24,7 +24,7 @@
     "obs-websocket-js": "^5.0.8",
     "sass": "^1.105.1",
     "svelte": "^5.57.1",
-    "svelte-eslint-parser": "^1.8.1",
+    "svelte-eslint-parser": "^1.9.0",
     "terser": "^5.51.2",
     "typescript": "^6.0.3",
     "vite": "^8.3.4"
